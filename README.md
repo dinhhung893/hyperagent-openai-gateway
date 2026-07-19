@@ -1,297 +1,282 @@
-# repository-harness
+<!-- LANGUAGE SWITCH -->
+[![English](https://img.shields.io/badge/README-English-1f6feb?style=for-the-badge)](README.md) [![Tiếng Việt](https://img.shields.io/badge/README-Ti%E1%BA%BFng%20Vi%E1%BB%87t-8b949e?style=for-the-badge)](README.vi.md)
 
-Turn any software repo into an agent-ready workspace.
+# Hyperagent → OpenAI-Compatible API Gateway
 
-`repository-harness` is a repository-level operating harness for Claude Code,
-Codex, Cursor, and other coding agents. It gives agents the missing project
-context they need before they change code: where to start, what the product
-contract says, how risky the work is, what proof is required, and which
-decisions future agents should inherit.
+![Python](https://img.shields.io/badge/Python-3.11+-3776ab?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-async-009688?logo=fastapi&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-46%20passing-3fb950)
+![Upstream](https://img.shields.io/badge/upstream-Hyperagent%20MCP-7c5cff)
 
-The app is what users touch. The harness is what agents touch.
+**Run Hyperagent.com behind an OpenAI-compatible API.** Point any OpenAI client
+(the `openai` SDK, Cursor, Continue, LibreChat, LangChain, …) at this gateway and
+call the endpoints you already know — `/v1/chat/completions`, `/v1/models`,
+`/v1/responses`, and more. The gateway translates each request into Hyperagent
+operations and returns responses in exact OpenAI wire format (streaming
+included).
 
-## Why Star This Repo
+> **In one sentence:** your existing OpenAI code keeps working, but the "model"
+> answering is a full Hyperagent **agent** that can search the web, run code,
+> use a browser, generate media, and call your integrations.
 
-Star this repo if you want practical, reusable patterns for making AI-assisted
-software development more reliable, inspectable, and easier for humans to steer.
+📚 **Full documentation:** [English docs](docs/en/00-index.md) ·
+[Tài liệu tiếng Việt](docs/vi/00-index.md)
 
-This project is exploring a simple idea:
+---
 
-> Coding agents do not only need better prompts. They need better repositories.
+## Table of contents
 
-## The Problem
+- [What is this?](#what-is-this)
+- [How it works](#how-it-works)
+- [Quick start](#quick-start)
+- [Connect your client](#connect-your-client)
+- [Supported endpoints](#supported-endpoints)
+- [The tool bridge](#the-tool-bridge-shell-write-web-)
+- [Multi-user / multi-tenant](#multi-user--multi-tenant)
+- [Configuration](#configuration)
+- [Deployment](#deployment)
+- [Testing](#testing)
+- [Project structure](#project-structure)
+- [How this repo is developed](#how-this-repo-is-developed)
+- [Limitations](#limitations)
+- [FAQ](#faq)
+- [License](#license)
 
-Most repos are built for humans reading code in a familiar codebase. Coding
-agents usually enter with only a chat prompt and a shallow snapshot of files.
-That leads to common failure modes:
+---
 
-- The agent edits code before understanding product intent.
-- Important constraints live only in chat history or in someone's head.
-- Validation expectations are vague or discovered too late.
-- Architecture tradeoffs are repeated instead of inherited.
-- Large requests do not get broken into reviewable story-sized work.
+## What is this?
 
-## The Harness Approach
+The **OpenAI API** is a de-facto standard: a huge amount of software knows how to
+"talk" to it. **Hyperagent.com** is a platform where AI *agents* do real work
+inside persistent *threads* (research, code, browser automation, media, files,
+integrations). Its only public programmatic door is a **hosted MCP server**
+(Model Context Protocol) — not an OpenAI-style API.
 
-A repository starts to have a harness when it helps an agent answer practical
-engineering questions without relying only on chat history:
+This project is the **adapter** between those two worlds. Think of it as a
+universal power plug: your device (the OpenAI client) plugs in the same way as
+always, and behind the wall the electricity actually comes from Hyperagent.
 
-- What should I read first?
-- What type of work is this?
-- Which product contract does it affect?
-- How risky is the change?
-- What proof will show the work is done?
-- What decision or lesson should future agents inherit?
+**Who is it for?**
+- People who already have OpenAI-based apps and want an agent backend without
+  rewriting their code.
+- Tools that only speak "OpenAI" (IDEs, chat UIs) but want Hyperagent's power.
 
-In this repo, those answers live in:
+New to these terms? Start with [Overview & concepts](docs/en/01-overview.md).
 
-- `AGENTS.md` — the stable agent shim with local project notes and Harness
-  doc links.
-- `docs/HARNESS.md` — the human-agent collaboration model.
-- `docs/FEATURE_INTAKE.md` — tiny, normal, and high-risk work classification.
-- `docs/ARCHITECTURE.md` — architecture discovery and boundary rules.
-- `docs/TEST_MATRIX.md` — behavior-to-proof validation expectations.
-- `docs/stories/` — story packets and backlog items.
-- `docs/decisions/` — durable decisions and tradeoffs.
-- `docs/templates/` — reusable spec, story, decision, and validation templates.
-
-OpenAI describes this shift as an agent-first world where humans steer and
-agents execute:
-
-https://openai.com/index/harness-engineering/
-
-## Install Harness Into A Project
-
-From a target project directory, run:
-
-```bash
-curl -fsSL "https://raw.githubusercontent.com/hoangnb24/repository-harness/main/scripts/install-harness.sh?$(date +%s)" | bash -s -- --yes
-```
-
-On Windows PowerShell, run:
-
-```powershell
-& ([scriptblock]::Create((irm "https://raw.githubusercontent.com/hoangnb24/repository-harness/main/scripts/install-harness.ps1"))) -Yes
-```
-
-If the target already has `AGENTS.md`, `docs/`, or `scripts/`, choose one:
-
-```bash
-# Update an existing Harness repo without moving existing files
-curl -fsSL "https://raw.githubusercontent.com/hoangnb24/repository-harness/main/scripts/install-harness.sh?$(date +%s)" | bash -s -- --merge --yes
-
-# Back up and replace AGENTS.md, docs/, and scripts/
-curl -fsSL "https://raw.githubusercontent.com/hoangnb24/repository-harness/main/scripts/install-harness.sh?$(date +%s)" | bash -s -- --override --yes
-```
-
-```powershell
-# Update an existing Harness repo without moving existing files
-& ([scriptblock]::Create((irm "https://raw.githubusercontent.com/hoangnb24/repository-harness/main/scripts/install-harness.ps1"))) -Merge -Yes
-
-# Back up and replace AGENTS.md, docs/, and scripts/
-& ([scriptblock]::Create((irm "https://raw.githubusercontent.com/hoangnb24/repository-harness/main/scripts/install-harness.ps1"))) -Override -Yes
-```
-
-Use `--merge` when a project already has Harness and you want to append newly
-added Harness files without moving the existing `AGENTS.md`, `docs/`, or
-`scripts/` paths into backup. Existing files stay untouched; only missing
-Harness files are created.
-
-For older Harness installs whose `AGENTS.md` still contains the full generated
-operating guide, refresh it into the small stable shim:
-
-```bash
-curl -fsSL "https://raw.githubusercontent.com/hoangnb24/repository-harness/main/scripts/install-harness.sh?$(date +%s)" | bash -s -- --merge --refresh-agent-shim --yes
-```
-
-The refresh backs up the existing file. If it detects the old
-Harness-generated guide, it replaces it with the shim. If the file appears
-custom, it appends or updates a marked Harness block instead of overwriting the
-project's local instructions.
-
-If the project is driven with Claude Code, add `--claude`. Claude Code never
-auto-loads `AGENTS.md`, so without this the installed harness is invisible to
-fresh sessions. The flag installs (or refreshes) a `CLAUDE.md` whose marked
-Harness block imports only `AGENTS.md`, the canonical request-authority and
-retrieval entrypoint. An existing `CLAUDE.md` gets the block appended after a
-backup; plain installs without the flag never touch `CLAUDE.md`:
-
-```bash
-curl -fsSL "https://raw.githubusercontent.com/hoangnb24/repository-harness/main/scripts/install-harness.sh?$(date +%s)" | bash -s -- --claude --yes
-```
-
-Or install into a specific path:
-
-```bash
-curl -fsSL "https://raw.githubusercontent.com/hoangnb24/repository-harness/main/scripts/install-harness.sh?$(date +%s)" | bash -s -- --directory /path/to/project --yes
-```
-
-```powershell
-& ([scriptblock]::Create((irm "https://raw.githubusercontent.com/hoangnb24/repository-harness/main/scripts/install-harness.ps1"))) -Directory C:\path\to\project -Yes
-```
-
-Use `--dry-run` on Bash or `-DryRun` on PowerShell to preview changes before
-writing files.
-
-The installer also downloads the prebuilt Harness CLI for the current platform,
-verifies its `.sha256` checksum, and installs it at
-`scripts/bin/harness-cli` on macOS/Linux or `scripts/bin/harness-cli.exe` on
-Windows. The Rust CLI is the main Harness tool and stable command path.
-
-Then bootstrap the local ignored database. A Harness source checkout builds the
-CLI from that checkout and validates the restored core-state epoch; it refuses
-to fabricate an empty replacement for missing repository state. An installed
-project reuses the verified release binary and initializes its own empty local
-state:
-
-```bash
-scripts/bootstrap-harness.sh
-```
-
-```powershell
-.\scripts\bootstrap-harness.ps1
-```
-
-Harness CLI release assets are built and proven before tag promotion by the
-`Harness CLI Release` GitHub Actions workflow. The installer expects each
-published release to include `harness-cli-<platform>` and
-`harness-cli-<platform>.sha256` assets for macOS arm64, macOS x64, Linux x64,
-Linux arm64, and Windows x64. The Windows asset is
-`harness-cli-windows-x64.exe` plus `harness-cli-windows-x64.exe.sha256`.
-
-Merged pull requests are recorded in `CHANGELOG.md` by the
-`Post-Merge Maintenance` workflow. When a merged PR changes the Rust CLI source,
-schema, Cargo metadata, or CLI release packaging, that workflow bumps the CLI
-patch version, updates `scripts/harness-cli-release-tag`, and submits the exact
-maintenance commit as a release candidate. The reusable workflow builds and
-tests all five platforms, verifies the pinned `v0.1.14` upgrade transition,
-then creates the annotated `harness-cli-v*` tag and publishes the ten binary and
-checksum assets. Failed tags are never moved or reused.
-
-## Try The Flow
-
-The fastest way to understand the harness is to inspect the tiny demo:
-
-- `docs/demo/README.md`: shows how a simple product idea becomes product docs,
-  stories, validation expectations, and decisions before implementation starts.
-
-A typical flow looks like this:
+## How it works
 
 ```text
-human intent or product spec
-  -> product contract
-  -> feature intake
-  -> story packet
-  -> validation expectations
-  -> implementation work
-  -> decision or lesson captured for future agents
+OpenAI-compatible client  (Cursor, Continue, LibreChat, openai SDK, …)
+        │  HTTP:  POST /v1/chat/completions   (Authorization: Bearer <gateway key>)
+        ▼
+┌───────────────────────────────────────────────┐
+│  Gateway (FastAPI)                             │
+│  • Auth: gateway key → a Hyperagent identity   │
+│  • Translate: OpenAI  ⇄  Hyperagent thread ops │
+│  • UpstreamAdapter:  MCP (real)  |  Mock (dev) │
+└───────────────────────────────────────────────┘
+        │  MCP JSON-RPC 2.0 over HTTPS  (OAuth 2.1 Bearer token)
+        ▼
+Hyperagent MCP server   https://hyperagent.com/api/mcp
+        │  list_agents · create_thread · get_thread (poll) · send_message · …
+        ▼
+Your Hyperagent agent runs the request end-to-end
+(web search, browser, shell, files, images/audio, integrations)
 ```
 
-Implementation prompts do not go straight to code. They first pass through
-feature intake, become story-sized work when needed, and then carry both product
-validation and harness maintenance expectations.
+Key ideas:
+- **`model` = a Hyperagent agent.** `GET /v1/models` lists your agents; pick one
+  as the `model`, or use the alias `hyperagent-default`.
+- **A request = a thread run.** Hyperagent runs in the background, so the gateway
+  **polls** until the answer is ready.
+- **Streaming is emulated.** Hyperagent doesn't stream tokens, so the gateway
+  turns poll updates into standard OpenAI SSE chunks.
+- **Stateless by design.** Every call is self-contained (see
+  [Architecture](docs/en/03-architecture.md)); the gateway never relies on
+  fragile upstream memory.
 
-Harness exposes a versioned orchestration contract for external runners. One
-independent consumer is [Symphony](https://github.com/hoangnb24/symphony); it
-is not part of this repository or the Harness installer.
+## Quick start
 
-## Tool Registry
-
-The harness can use optional external tools (linters, code-graph servers,
-deploy checks) without depending on any of them. You register a tool as a
-provider of a *capability*, the harness scans whether it is actually present,
-and a workflow step uses whatever is equipped — an absent tool is a clean skip,
-never a failure.
+Requires Python 3.11+.
 
 ```bash
-# register a tool as a provider of a capability
-scripts/bin/harness-cli tool register --name deploy-check --kind cli \
-  --capability deploy-verification --command ./scripts/deploy-check.sh \
-  --responsibility Verification --description "Verify deploy health before release"
-
-# scan presence (writes present/missing/unknown)
-scripts/bin/harness-cli tool check
-
-# a step looks up what is equipped for a purpose
-scripts/bin/harness-cli query tools --capability deploy-verification --status present
+python3.11 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-Kinds (`cli`, `binary`, `mcp`, `skill`, `http`) make it agent-generic: each
-agent runtime uses what it can orchestrate. See `docs/TOOL_REGISTRY.md` for the
-full model, the degrade ladder, and how to wire a tool into a flow step.
+**Try it offline (no account needed)** — the built-in *mock* upstream:
 
-## Current State
+```bash
+GATEWAY_UPSTREAM=mock uvicorn gateway.app:app --port 8000
+curl http://localhost:8000/v1/chat/completions -H "content-type: application/json" \
+  -d '{"model":"agent_default","messages":[{"role":"user","content":"Hello"}]}'
+```
 
-This repository implements the Harness v0 product: a Rust CLI, SQLite durable
-layer, installers, operating documents, contract tests, and release automation.
-Those upstream components are executable product behavior, not placeholders.
+**Use the real Hyperagent upstream** — needs a one-time OAuth login:
 
-Installing Harness into another repository does not create or choose that
-consumer's application, stack, or product specification. It adds the reusable
-engineering layer that helps humans and agents turn the consumer's intent into
-validated work.
+```bash
+python tools/oauth_login.py --out ~/.hyperagent-gateway/tokens.json   # once, in a browser
+GATEWAY_UPSTREAM=mcp SHIM_API_KEYS=sk-mylocalkey \
+  uvicorn gateway.app:app --port 8000
+```
 
-## Product Sources
+Step-by-step (with the output of every command): [Quick start](docs/en/02-quickstart.md).
 
-The upstream Harness contract lives in this README, the operating documents,
-the versioned orchestration contract, story packets, and executable tests. The
-generic `docs/product/` directory is reserved for a consumer project's product
-contract; Harness intentionally does not populate it with a fake domain model.
+> **Note:** your Hyperagent account must have at least one **named agent** (the
+> MCP server only starts threads on named agents). This repo was built with an
+> agent named **API Bridge**.
 
-When a user provides a project specification, add or reference it as the input
-spec for the first buildout, then derive smaller living artifacts from it:
+## Connect your client
 
-- `docs/product/`: current product contract files, created from the spec.
-- `docs/stories/`: story packets and backlog created from selected work.
-- `docs/TEST_MATRIX.md`: behavior-to-proof control panel.
-- `docs/decisions/`: durable decisions and tradeoffs.
+**OpenAI Python SDK**
 
-Do not keep a project-specific spec or product breakdown in this harness until
-a real project supplies one.
+```python
+from openai import OpenAI
+client = OpenAI(base_url="http://localhost:8000/v1", api_key="sk-mylocalkey")
+print(client.models.list())                     # your Hyperagent agents
+r = client.chat.completions.create(
+    model="hyperagent-default",
+    messages=[{"role": "user", "content": "Research the latest on X and summarize"}],
+)
+print(r.choices[0].message.content)
+```
 
-## Repository Structure
+**curl**
+
+```bash
+curl http://localhost:8000/v1/chat/completions \
+  -H "authorization: Bearer sk-mylocalkey" -H "content-type: application/json" \
+  -d '{"model":"hyperagent-default","messages":[{"role":"user","content":"Hello"}],"stream":true}'
+```
+
+**Cursor / Continue / LibreChat / OpenWebUI:** set the OpenAI **Base URL** to
+`http://localhost:8000/v1`, the **API key** to one of your `SHIM_API_KEYS`, and
+the **model** to an agent id from `GET /v1/models`.
+
+## Supported endpoints
+
+| Endpoint | Status |
+| --- | --- |
+| `GET /v1/models`, `/v1/models/{id}` | ✅ lists your Hyperagent agents |
+| `POST /v1/chat/completions` (stream + non-stream) | ✅ |
+| `POST /v1/responses` (+ background, cancel, input_items, stateful chains) | ✅ |
+| `GET /v1/tools` + forced `tool_choice` | ✅ tool bridge |
+| `POST /v1/completions` (legacy) | ✅ |
+| `POST /v1/images/generations`, `/v1/images/edits` | ✅ real fetchable URLs |
+| `POST /v1/audio/speech`, `/transcriptions`, `/translations` | ✅ |
+| `POST /v1/files`, `GET/DELETE /v1/files/{id}`, `/content` | ✅ + chat attachments |
+| `POST /v1/embeddings` | ✅ local fallback (or `501` if disabled) |
+| `POST /v1/moderations` | ✅ heuristic |
+
+Full parameter-by-parameter behavior: [API reference](docs/en/04-api-reference.md).
+
+## The tool bridge (Shell, Write, web, …)
+
+Hyperagent agents have a rich toolbox (bash/shell, file read/write, web search,
+browser, image/video/audio, tables, docs, maps, integrations). The gateway
+exposes all of it through OpenAI's standard `tools` / `tool_calls` in three modes:
+
+- **Observe** — an agent's tool activity shows up as `tool_calls` in the reply.
+- **Direct** — force a capability with `tool_choice`.
+- **Run** — a tool-runner executes a tool directly (e.g. run a shell command)
+  and returns the result.
+
+`GET /v1/tools` returns the full catalog. Details + examples:
+[Tool bridge](docs/en/05-tool-bridge.md).
+
+## Multi-user / multi-tenant
+
+One gateway can serve many Hyperagent users. Map each API key to its own
+Hyperagent identity and policy via `GATEWAY_KEYS_FILE`:
+
+```json
+[{"api_key":"sk-alice","token_file":"~/.hyperagent-gateway/alice.json","disabled_tools":["shell"]},
+ {"api_key":"sk-bob","token_file":"~/.hyperagent-gateway/bob.json"}]
+```
+
+Each user authorizes once with `tools/oauth_login.py`. See
+[Deployment & security](docs/en/06-deployment.md).
+
+## Configuration
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `GATEWAY_UPSTREAM` | `mcp` | `mcp` (real) or `mock` (offline) |
+| `HYPERAGENT_MCP_URL` | `https://hyperagent.com/api/mcp` | upstream endpoint |
+| `HYPERAGENT_TOKEN_FILE` | `~/.hyperagent-gateway/tokens.json` | OAuth token bundle |
+| `SHIM_API_KEYS` | (empty = dev) | comma-separated client keys |
+| `GATEWAY_KEYS_FILE` | (none) | multi-tenant identity map (JSON) |
+| `GATEWAY_DEFAULT_AGENT` | (first agent) | agent for `hyperagent-default` |
+| `GATEWAY_EXEC_MODE` | `roundtrip` | tool-runner mode: `roundtrip` or `auto` |
+| `GATEWAY_DISABLED_TOOLS` | (none) | hide tools, e.g. `shell,write_file` |
+| `GATEWAY_EMBEDDINGS` | `fallback` | `fallback` or `off` |
+| `GATEWAY_POLL_INTERVAL` / `GATEWAY_RUN_TIMEOUT` | `1.0` / `600` | polling |
+
+## Deployment
+
+```bash
+docker build -t hyperagent-openai-gateway .
+docker run -p 8000:8000 -e GATEWAY_UPSTREAM=mcp \
+  -v ~/.hyperagent-gateway:/root/.hyperagent-gateway hyperagent-openai-gateway
+```
+
+Full guide (VPS, reverse proxy, HTTPS, secrets): [Deployment](docs/en/06-deployment.md).
+
+## Testing
+
+```bash
+python3.11 -m pytest tests/ -q     # 46 tests: unit + ASGI API + OpenAI SDK
+```
+
+## Project structure
 
 ```text
-project/
-  AGENTS.md
-  README.md
-  docs/
-    HARNESS.md
-    FEATURE_INTAKE.md
-    ARCHITECTURE.md
-    TEST_MATRIX.md
-    HARNESS_BACKLOG.md
-    product/
-    stories/
-    decisions/
-    demo/
-    templates/
-  scripts/
-    README.md
+gateway/            FastAPI app + translation + upstream adapters
+  app.py            all HTTP routes
+  upstream/         mcp.py (real) · mock.py (dev) · base.py · manager.py
+  translate.py streaming.py toolbridge.py fallbacks.py media.py auth.py …
+tools/              oauth_login.py, oauth_remote.py (one-time OAuth helpers)
+tests/              46 tests (mock upstream + OpenAI SDK)
+docs/en/  docs/vi/  bilingual documentation
+docs/product/       canonical technical spec (English)
+Dockerfile  requirements.txt  pyproject.toml
 ```
 
-## Contributing
+## How this repo is developed
 
-This project is early and benefits most from real-world agent failure cases,
-example harness installs, docs improvements, and reusable workflow patterns.
-See `CONTRIBUTING.md` for contribution ideas.
+This repository is built with **[repository-harness](https://github.com/hoangnb24/repository-harness)**,
+a lightweight "operating system" for coding agents (intake classification, story
+packets, decision records, a test matrix). Those files (`AGENTS.md`, `docs/HARNESS*.md`,
+`docs/product/`, `docs/decisions/`) describe *how the repo is built*, not the
+product itself. If you just want to *use* the gateway, you can ignore them.
+See [Contributing](docs/en/09-contributing.md).
 
-Useful contributions include:
+## Limitations
 
-- Show how the harness works in a real project.
-- Add missing templates or improve existing ones.
-- Propose validation patterns for different stacks.
-- Share failures where an agent made the wrong change because the repo lacked
-  context.
-- Compare harness behavior across Claude Code, Codex, Cursor, and other tools.
+- **Latency:** each call runs a full agent pipeline — expect seconds, not
+  milliseconds.
+- **Streaming is emulated** (poll-based), not true token streaming.
+- **Sampling knobs** (`temperature`, `top_p`, `seed`) are best-effort / no-ops.
+- **Embeddings** use a local non-semantic fallback unless you wire a real provider.
+- **Auth** is per-user OAuth (Hyperagent has no API keys); the gateway stores and
+  refreshes each user's token.
 
-## Share
+## FAQ
 
-If this idea resonates, please star the repo and share it with someone building
-with coding agents.
+A few quick ones (full list: [FAQ](docs/en/07-faq.md)):
 
-Short description:
+- **Do I need to change my OpenAI code?** No — just the `base_url` and `api_key`.
+- **Which model do I pass?** A Hyperagent agent id (`GET /v1/models`) or
+  `hyperagent-default`.
+- **Is it really OpenAI-compatible?** Yes; the official `openai` SDK works
+  unmodified (tested).
 
-> An agent-ready repo harness for Claude Code, Codex, Cursor, and other coding
-> agents: AGENTS.md, product contracts, story packets, validation matrix, and
-> decision records.
+## License
+
+No license file is included yet. Until one is added, all rights are reserved by
+the repository owner. Open an issue if you'd like a specific license (e.g. MIT).
+
+---
+
+<sub>Built on the Hyperagent MCP server. "OpenAI" is a trademark of OpenAI; this
+project is an independent compatibility layer and is not affiliated with OpenAI.</sub>
