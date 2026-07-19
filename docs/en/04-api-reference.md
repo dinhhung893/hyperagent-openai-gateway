@@ -9,6 +9,10 @@ All responses use OpenAI wire format. Errors use the OpenAI envelope:
 { "error": { "message": "…", "type": "invalid_request_error", "param": "model", "code": "model_not_found" } }
 ```
 
+> **Windows PowerShell:** `curl` is an alias for `Invoke-WebRequest`; replace the
+> `curl -H … -d …` examples below with `Invoke-RestMethod -Uri … -Method Post
+> -ContentType 'application/json' -Body '…'` (or install and call `curl.exe`).
+
 ## `GET /v1/models` · `GET /v1/models/{id}`
 Lists your Hyperagent agents as OpenAI models (`id`, `owned_by:"hyperagent"`,
 `metadata` with name/description). Use an `id` as the `model` field, or the alias

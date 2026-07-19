@@ -176,12 +176,20 @@ r = client.chat.completions.create(
 print(r.choices[0].message.content)
 ```
 
-**curl**
+**curl (macOS / Linux)**
 
 ```bash
 curl http://localhost:8000/v1/chat/completions \
   -H "authorization: Bearer sk-mylocalkey" -H "content-type: application/json" \
-  -d '{"model":"hyperagent-default","messages":[{"role":"user","content":"Hello"}],"stream":true}'
+  -d '{"model":"hyperagent-default","messages":[{"role":"user","content":"Hello"}]}'
+```
+
+**PowerShell (Windows)** — `curl` there is `Invoke-WebRequest`, so use:
+
+```powershell
+Invoke-RestMethod -Uri http://localhost:8000/v1/chat/completions -Method Post `
+  -Headers @{ Authorization = "Bearer sk-mylocalkey" } -ContentType 'application/json' `
+  -Body '{"model":"hyperagent-default","messages":[{"role":"user","content":"Hello"}]}'
 ```
 
 **Cursor / Continue / LibreChat / OpenWebUI:** set the OpenAI **Base URL** to

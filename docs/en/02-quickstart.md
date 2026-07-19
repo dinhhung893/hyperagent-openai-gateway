@@ -38,12 +38,28 @@ You get the `hyperagent-gateway` command (alias `hga`). If the shell can't find 
 
 ## 2. Try it offline (no account)
 
+Start the server (mock upstream):
+
 ```bash
-hga serve --upstream mock
-# in another terminal:
+hga serve --upstream mock          # or:  py -m gateway.cli serve --upstream mock
+```
+
+Then send a test request from another terminal:
+
+```bash
+# macOS / Linux
 curl http://localhost:8000/v1/chat/completions -H "content-type: application/json" \
   -d '{"model":"agent_default","messages":[{"role":"user","content":"Hello"}]}'
 ```
+
+```powershell
+# Windows PowerShell — its `curl` is Invoke-WebRequest, so use this:
+Invoke-RestMethod -Uri http://localhost:8000/v1/chat/completions -Method Post `
+  -ContentType 'application/json' `
+  -Body '{"model":"agent_default","messages":[{"role":"user","content":"Hello"}]}'
+```
+
+No curl needed at all? Just run `hga agents` — if it lists agents, it works.
 
 ## 3. Connect the real Hyperagent
 

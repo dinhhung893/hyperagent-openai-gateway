@@ -9,6 +9,10 @@ Mọi kết quả dùng định dạng OpenAI. Lỗi dùng khung OpenAI:
 { "error": { "message": "…", "type": "invalid_request_error", "param": "model", "code": "model_not_found" } }
 ```
 
+> **Windows PowerShell:** `curl` là bí danh của `Invoke-WebRequest`; hãy thay các ví
+> dụ `curl -H … -d …` bên dưới bằng `Invoke-RestMethod -Uri … -Method Post
+> -ContentType 'application/json' -Body '…'` (hoặc cài và gọi `curl.exe`).
+
 ## `GET /v1/models` · `GET /v1/models/{id}`
 Liệt kê các agent Hyperagent dưới dạng model OpenAI (`id`,
 `owned_by:"hyperagent"`, `metadata` gồm tên/mô tả). Dùng một `id` làm trường

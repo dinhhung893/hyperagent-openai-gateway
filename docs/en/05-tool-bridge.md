@@ -6,6 +6,9 @@ The tool bridge exposes Hyperagent's inner toolbox (shell, files, web, media,
 integrations…) through OpenAI's standard **function calling** (`tools` /
 `tool_calls`), so unmodified OpenAI clients can see and drive them.
 
+> **Windows PowerShell:** replace `curl -H … -d …` below with `Invoke-RestMethod`
+> (or `curl.exe`) — PowerShell's `curl` is `Invoke-WebRequest`.
+
 ## Three modes
 
 **A. Observe (automatic).** On any chat, the agent may use tools while working.

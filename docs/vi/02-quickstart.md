@@ -38,12 +38,28 @@ Sẽ có lệnh `hyperagent-gateway` (bí danh `hga`). Nếu shell không thấy
 
 ## 2. Thử ngoại tuyến (không cần tài khoản)
 
+Chạy máy chủ (thượng nguồn mock):
+
 ```bash
-hga serve --upstream mock
-# ở cửa sổ khác:
+hga serve --upstream mock          # hoặc:  py -m gateway.cli serve --upstream mock
+```
+
+Rồi gửi một yêu cầu thử ở cửa sổ khác:
+
+```bash
+# macOS / Linux
 curl http://localhost:8000/v1/chat/completions -H "content-type: application/json" \
   -d '{"model":"agent_default","messages":[{"role":"user","content":"Xin chào"}]}'
 ```
+
+```powershell
+# Windows PowerShell — `curl` ở đây là Invoke-WebRequest, nên dùng lệnh này:
+Invoke-RestMethod -Uri http://localhost:8000/v1/chat/completions -Method Post `
+  -ContentType 'application/json' `
+  -Body '{"model":"agent_default","messages":[{"role":"user","content":"Xin chào"}]}'
+```
+
+Không cần curl? Cứ chạy `hga agents` — nếu liệt kê được agent là chạy tốt.
 
 ## 3. Kết nối Hyperagent thật
 

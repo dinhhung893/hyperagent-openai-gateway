@@ -6,6 +6,9 @@ Cầu nối công cụ phơi bày hộp đồ nghề bên trong của Hyperagent
 media, tích hợp…) qua cơ chế **gọi hàm** chuẩn OpenAI (`tools` / `tool_calls`),
 để các client OpenAI không chỉnh sửa vẫn thấy và điều khiển được.
 
+> **Windows PowerShell:** thay `curl -H … -d …` bên dưới bằng `Invoke-RestMethod`
+> (hoặc `curl.exe`) — vì `curl` trong PowerShell là `Invoke-WebRequest`.
+
 ## Ba chế độ
 
 **A. Quan sát (tự động).** Với mọi câu chat, agent có thể dùng công cụ khi làm
