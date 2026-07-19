@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hyperagent → OpenAI API · Complete Compatibility & Capability Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d1117; --panel:#141b24; --panel2:#0f161d; --line:#233040;
+    --ink:#e6edf3; --mut:#8b98a8; --dim:#63707f;
+    --acc:#4aa8ff; --acc2:#7c5cff;
+    --ok:#3fb950; --map:#4aa8ff; --noop:#d29922; --no:#f85149; --phase:#7c5cff;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--acc);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 6vw}
+  code{font-family:var(--mono);font-size:.87em;background:#1c2530;border:1px solid var(--line);
+    padding:.08em .4em;border-radius:5px;color:#cdd9e5}
+
+  /* hero */
+  header.hero{padding:88px 0 54px;border-bottom:1px solid var(--line);
+    background:radial-gradient(1200px 500px at 15% -10%,rgba(76,168,255,.12),transparent 60%),
+               radial-gradient(1000px 460px at 100% 0%,rgba(124,92,255,.12),transparent 55%)}
+  .eyebrow{font-family:var(--mono);font-size:.76rem;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--acc);margin:0 0 18px}
+  h1{font-size:clamp(2.1rem,5.2vw,3.5rem);line-height:1.05;margin:0 0 18px;font-weight:800;letter-spacing:-.02em}
+  h1 .g{background:linear-gradient(100deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:1.2rem;color:var(--mut);max-width:74ch;margin:0}
+  .flow{margin-top:34px;font-family:var(--mono);font-size:.82rem;color:var(--dim);
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .flow b{color:var(--ink);font-weight:600}
+  .flow .ar{color:var(--acc)}
+
+  /* section */
+  section{padding:60px 0;border-bottom:1px solid var(--line)}
+  .kicker{font-family:var(--mono);font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;color:var(--acc2);margin:0 0 10px}
+  h2{font-size:clamp(1.5rem,3.2vw,2.1rem);margin:0 0 8px;font-weight:700;letter-spacing:-.01em}
+  .sub{color:var(--mut);max-width:78ch;margin:0 0 26px}
+
+  /* cards */
+  .grid{display:grid;gap:16px}
+  .g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:780px){.g3,.g2{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 20px}
+  .card h3{margin:0 0 8px;font-size:1.02rem;font-weight:600}
+  .card p{margin:0;color:var(--mut);font-size:.92rem}
+  .card .t{font-family:var(--mono);font-size:.72rem;color:var(--acc);text-transform:uppercase;letter-spacing:.12em}
+
+  /* tables */
+  .tbl{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:6px;
+    border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .tbl th{background:var(--panel2);text-align:left;padding:11px 14px;font-weight:600;color:var(--ink);
+    border-bottom:1px solid var(--line);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em}
+  .tbl td{padding:10px 14px;border-bottom:1px solid var(--line);color:var(--mut);vertical-align:top}
+  .tbl tr:last-child td{border-bottom:none}
+  .tbl tr:hover td{background:rgba(76,168,255,.04)}
+  .tbl td code{white-space:nowrap}
+  .scroll{overflow-x:auto}
+
+  /* pills */
+  .pill{display:inline-block;font-family:var(--mono);font-size:.68rem;font-weight:600;
+    padding:.16em .55em;border-radius:20px;letter-spacing:.03em;white-space:nowrap;border:1px solid}
+  .p-ok{color:var(--ok);border-color:rgba(63,185,80,.4);background:rgba(63,185,80,.1)}
+  .p-map{color:var(--map);border-color:rgba(76,168,255,.4);background:rgba(76,168,255,.1)}
+  .p-noop{color:var(--noop);border-color:rgba(210,153,34,.4);background:rgba(210,153,34,.1)}
+  .p-no{color:var(--no);border-color:rgba(248,81,73,.4);background:rgba(248,81,73,.1)}
+  .p-ph{color:var(--phase);border-color:rgba(124,92,255,.4);background:rgba(124,92,255,.1)}
+
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin:0 0 22px;font-size:.85rem;color:var(--mut)}
+  .legend span{display:inline-flex;gap:8px;align-items:center}
+
+  ul.clean{list-style:none;padding:0;margin:0}
+  ul.clean li{padding:7px 0 7px 24px;position:relative;color:var(--mut);font-size:.92rem;border-bottom:1px solid var(--panel2)}
+  ul.clean li:before{content:"›";position:absolute;left:2px;color:var(--acc);font-weight:700}
+  ul.clean li b{color:var(--ink);font-weight:600}
+  ul.clean li code{white-space:nowrap}
+
+  .note{background:linear-gradient(180deg,rgba(210,153,34,.08),transparent);border:1px solid rgba(210,153,34,.35);
+    border-radius:12px;padding:16px 18px;color:#e8d9b5;font-size:.9rem}
+  .note b{color:#f0c060}
+
+  .toolgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+  .tool{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+  .tool code{background:none;border:none;padding:0;color:var(--acc);font-weight:600;font-size:.82rem}
+  .tool small{display:block;color:var(--dim);font-size:.76rem;margin-top:3px;line-height:1.45}
+
+  footer{padding:40px 0 70px;color:var(--dim);font-size:.85rem}
+  .foot-tag{font-family:var(--mono);font-size:.72rem;color:var(--dim)}
+  h2 .cnt{font-family:var(--mono);font-size:.9rem;color:var(--dim);font-weight:500;margin-left:10px}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Hyperagent.com-to-API · Spec Reference</p>
+    <h1>Turn Hyperagent.com into an<br><span class="g">OpenAI-compatible backend</span></h1>
+    <p class="lede">A gateway that speaks the OpenAI wire protocol to any compatible client and
+      translates every call into Hyperagent operations — exposing the <b>complete</b> OpenAI
+      attribute surface and Hyperagent's <b>entire</b> tool catalog (Shell, Write, web, browser,
+      media, tables, docs, maps, integrations) through <code>tool_calls</code>.</p>
+    <div class="flow">
+      <b>OpenAI client</b> <span class="ar">──▶</span> <b>Gateway</b>
+      <span class="ar">──▶</span> MCP JSON-RPC <span class="ar">──▶</span>
+      <b>hyperagent.com/api/mcp</b> <span class="ar">──▶</span> agent run
+    </div>
+  </div>
+</header>
+
+<section id="upstream">
+  <div class="wrap">
+    <p class="kicker">The upstream · confirmed 2026-07-19</p>
+    <h2>Hyperagent exposes exactly one programmatic surface: the MCP server</h2>
+    <p class="sub">Confirmed by docs + live endpoint probing. This is the whole contract the gateway builds on —
+      there is no REST/GraphQL/OpenAPI/SDK alternative.</p>
+    <div class="grid g3">
+      <div class="card"><span class="t">Transport</span><h3>JSON-RPC 2.0 over POST</h3>
+        <p>Streamable HTTP at <code>hyperagent.com/api/mcp</code>. <code>GET</code> → 405. Per-response SSE only; no long-lived stream channel.</p></div>
+      <div class="card"><span class="t">Auth</span><h3>OAuth 2.1 · no API keys</h3>
+        <p>Authorization Code + PKCE (S256), Dynamic Client Registration, refresh via <code>offline_access</code>. Browser sign-in once per user; token acts as that user.</p></div>
+      <div class="card"><span class="t">Execution</span><h3>Async · poll to collect</h3>
+        <p><code>create_thread</code> returns a <code>threadId</code> immediately; poll <code>get_thread</code> until not running. No token-level streaming → the gateway emulates it.</p></div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="scroll"><table class="tbl">
+      <thead><tr><th>MCP tool</th><th>Purpose</th><th>Gateway uses it for</th></tr></thead>
+      <tbody>
+        <tr><td><code>list_agents</code></td><td>List agents you can start threads on (id, name, description).</td><td><code>/v1/models</code></td></tr>
+        <tr><td><code>create_thread</code></td><td>Start a background thread for an agent; returns <code>threadId</code>.</td><td>new conversation / request</td></tr>
+        <tr><td><code>send_message</code></td><td>Add a follow-up turn (queues if a turn is running).</td><td>multi-turn / tool round-trip</td></tr>
+        <tr><td><code>get_thread</code></td><td>Read messages + running status. Poll this.</td><td>completion + streaming emulation</td></tr>
+        <tr><td><code>list_threads</code></td><td>Browse your threads.</td><td>conversation registry</td></tr>
+        <tr><td><code>create_attachment_upload</code></td><td>Upload URL + <code>fileId</code> without inlining bytes.</td><td><code>/v1/files</code>, image/audio inputs</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="endpoints">
+  <div class="wrap">
+    <p class="kicker">Axis 1 · every callable endpoint</p>
+    <h2>OpenAI endpoint coverage <span class="cnt">// 20+ routes</span></h2>
+    <div class="legend">
+      <span><span class="pill p-ok">IMPL</span> real Hyperagent behavior</span>
+      <span><span class="pill p-map">MAP</span> translated to closest control</span>
+      <span><span class="pill p-noop">NO-OP</span> accepted, no effect</span>
+      <span><span class="pill p-no">501</span> explicit, honest error</span>
+    </div>
+    <div class="scroll"><table class="tbl">
+      <thead><tr><th>Endpoint</th><th>Status</th><th>Hyperagent mapping</th></tr></thead>
+      <tbody>
+        <tr><td><code>POST /v1/chat/completions</code></td><td><span class="pill p-ok">IMPL</span></td><td>messages→thread; poll <code>get_thread</code>; stream emulated</td></tr>
+        <tr><td><code>POST /v1/responses</code></td><td><span class="pill p-ok">IMPL</span></td><td>Best fit — 1:1 with threads; background, polling, tool events, <code>previous_response_id</code>→threadId</td></tr>
+        <tr><td><code>GET /v1/responses/{id}</code> · cancel · input_items</td><td><span class="pill p-map">MAP</span></td><td><code>get_thread</code> / best-effort stop</td></tr>
+        <tr><td><code>GET /v1/models</code> · <code>/v1/models/{id}</code></td><td><span class="pill p-ok">IMPL</span></td><td><code>list_agents</code> → models</td></tr>
+        <tr><td><code>POST /v1/completions</code> (legacy)</td><td><span class="pill p-map">MAP</span></td><td>prompt→thread; single text choice</td></tr>
+        <tr><td><code>POST /v1/images/generations</code> · edits · variations</td><td><span class="pill p-ok">IMPL</span></td><td>agent Image Generation (Gemini Flash/Pro, GPT Image 2)</td></tr>
+        <tr><td><code>POST /v1/audio/speech</code></td><td><span class="pill p-ok">IMPL</span></td><td>Audio Generation (TTS · 30 voices · dialogue)</td></tr>
+        <tr><td><code>POST /v1/audio/transcriptions</code> · translations</td><td><span class="pill p-ok">IMPL</span></td><td>Audio Transcription (diarization, timestamps)</td></tr>
+        <tr><td><code>POST /v1/files</code> · GET · content · DELETE</td><td><span class="pill p-map">MAP</span></td><td><code>create_attachment_upload</code> + file registry</td></tr>
+        <tr><td><code>POST /v1/moderations</code></td><td><span class="pill p-map">MAP</span></td><td>agent-run classification</td></tr>
+        <tr><td><code>POST /v1/batches</code> · GET · cancel</td><td><span class="pill p-map">MAP</span></td><td>fan-out to threads (phase 3)</td></tr>
+        <tr><td><code>POST /v1/embeddings</code></td><td><span class="pill p-no">501</span></td><td>Not in MCP surface; optional skill-backed adapter</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="attributes">
+  <div class="wrap">
+    <p class="kicker">Axis 1 · every callable attribute</p>
+    <h2>Chat Completions — full request-attribute matrix</h2>
+    <p class="sub">Every documented OpenAI request field is accepted with a defined behavior, so no client breaks.</p>
+    <div class="scroll"><table class="tbl">
+      <thead><tr><th>Attribute</th><th>Status</th><th>Behavior</th></tr></thead>
+      <tbody>
+        <tr><td><code>model</code></td><td><span class="pill p-ok">IMPL</span></td><td>→ <code>agentId</code> via <code>list_agents</code> (cached); aliases <code>hyperagent-default/-auto</code></td></tr>
+        <tr><td><code>messages[]</code> (+ roles, <code>content</code> parts)</td><td><span class="pill p-ok">IMPL</span></td><td>system/developer/user/assistant/tool; text·image_url·input_audio·file parts</td></tr>
+        <tr><td><code>stream</code></td><td><span class="pill p-ok">IMPL*</span></td><td>emulated SSE via <code>get_thread</code> poll diff</td></tr>
+        <tr><td><code>stream_options.include_usage</code></td><td><span class="pill p-map">MAP</span></td><td>final usage chunk (best-effort)</td></tr>
+        <tr><td><code>tools[]</code>, <code>tool_choice</code>, <code>parallel_tool_calls</code></td><td><span class="pill p-ok">IMPL</span></td><td>the tool bridge — see below</td></tr>
+        <tr><td><code>functions</code>, <code>function_call</code> (legacy)</td><td><span class="pill p-map">MAP</span></td><td>translated to <code>tools</code>/<code>tool_choice</code></td></tr>
+        <tr><td><code>response_format</code> json_object / json_schema</td><td><span class="pill p-ok">IMPL</span></td><td>agent instructed + validated; <code>strict</code> via re-ask</td></tr>
+        <tr><td><code>max_tokens</code> / <code>max_completion_tokens</code></td><td><span class="pill p-map">MAP</span></td><td>→ agent budget / output ceiling</td></tr>
+        <tr><td><code>reasoning_effort</code></td><td><span class="pill p-map">MAP</span></td><td>→ agent Effort / thinking tokens</td></tr>
+        <tr><td><code>modalities</code>, <code>audio</code></td><td><span class="pill p-map">MAP</span></td><td>audio output via Audio Generation</td></tr>
+        <tr><td><code>web_search_options</code></td><td><span class="pill p-map">MAP</span></td><td>enables agent Web Search</td></tr>
+        <tr><td><code>n</code>, <code>stop</code></td><td><span class="pill p-map">MAP</span></td><td>multi-run / post-trim (best-effort)</td></tr>
+        <tr><td><code>store</code>, <code>metadata</code>, <code>user</code></td><td><span class="pill p-map">MAP</span></td><td>persisted with conversation→thread map</td></tr>
+        <tr><td><code>temperature</code>, <code>top_p</code>, <code>seed</code>, penalties, <code>logit_bias</code></td><td><span class="pill p-noop">NO-OP</span></td><td>agent controls sampling; accepted, documented</td></tr>
+        <tr><td><code>logprobs</code>, <code>top_logprobs</code></td><td><span class="pill p-no">501</span></td><td>returns <code>null</code> logprobs</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="capabilities">
+  <div class="wrap">
+    <p class="kicker">Axis 2 · everything Hyperagent can do</p>
+    <h2>Complete Hyperagent capability catalog <span class="cnt">// 9 families</span></h2>
+    <p class="sub">Every agent-internal tool from the Available Tools reference. All of it is reachable through the OpenAI protocol via the tool bridge.</p>
+    <div class="grid g3">
+      <div class="card"><span class="t">1 · Search & research</span><p>Web Search (Exa) · Web Contents (Exa) · Image Search</p></div>
+      <div class="card"><span class="t">2 · Browser automation</span><p>navigate · observe · extract · screenshot · click/type · scroll · upload · wait</p></div>
+      <div class="card"><span class="t">3 · Code, compute & filesystem</span><p><b>Shell/Bash</b> (Python·Node·CLI, persistent cwd) · <b>Write/Read/Edit</b> · glob/grep · save & publish files</p></div>
+      <div class="card"><span class="t">4 · Media & audio</span><p>Image gen (Gemini/GPT Image, 4K) · Video (Veo) · TTS (30 voices) · Avatars (HeyGen) · Transcription</p></div>
+      <div class="card"><span class="t">5 · Structured artifacts</span><p>Documents · Tables · Webpages · Slides · Maps · HyperApps</p></div>
+      <div class="card"><span class="t">6 · Location intelligence</span><p>Geocode · Directions · Distance Matrix · Places · Street View · Weather · Time Zone · Aerial View</p></div>
+      <div class="card"><span class="t">7 · Knowledge</span><p>Skills (+ scripts, credential injection) · Memories · Rubrics & evaluation · backtesting</p></div>
+      <div class="card"><span class="t">8 · Conversation & orchestration</span><p>Thread/Message search · Agent config · Execution history · subagents · 7 invocation types + Live Mode</p></div>
+      <div class="card"><span class="t">9 · Integrations</span><p>Search/Connect/Execute · Google Workspace · GitHub · Notion · Slack · Airtable · Databricks · custom MCP · skill APIs</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="bridge">
+  <div class="wrap">
+    <p class="kicker">The bridge · Shell · Write · tool_calls</p>
+    <h2>How the whole tool catalog reaches OpenAI clients</h2>
+    <p class="sub">The MCP surface can't invoke agent tools directly, so the gateway bridges them in three modes — all using the standard OpenAI function-calling format, so unmodified clients just work.</p>
+    <div class="grid g3">
+      <div class="card"><span class="t">Mode A · Observability</span><h3>See what the agent did</h3>
+        <p>Tool activity in the thread (Shell, Write, web search, image gen…) is surfaced back as OpenAI <code>tool_calls</code> + results and Responses step events.</p></div>
+      <div class="card"><span class="t">Mode B · Directed</span><h3>Force a capability</h3>
+        <p>Clients pass a canonical tool + <code>tool_choice</code> to steer the agent toward a specific capability.</p></div>
+      <div class="card"><span class="t">Mode C · Tool-runner</span><h3>Direct execution</h3>
+        <p>Standard tool round-trip (or auto-exec) backed by a tool-runner agent → direct Shell/Write/etc. via the OpenAI protocol.</p></div>
+    </div>
+    <div style="height:22px"></div>
+    <h3 style="margin:0 0 12px;font-size:1rem;color:var(--mut);font-weight:600">Canonical tool catalog — served at <code>GET /v1/tools</code></h3>
+    <div class="toolgrid">
+      <div class="tool"><code>shell</code><small>run a bash command</small></div>
+      <div class="tool"><code>write_file</code><small>create / overwrite</small></div>
+      <div class="tool"><code>read_file</code><small>read a file</small></div>
+      <div class="tool"><code>edit_file</code><small>string-replace edit</small></div>
+      <div class="tool"><code>list_files</code><small>list / glob</small></div>
+      <div class="tool"><code>web_search</code><small>Exa search</small></div>
+      <div class="tool"><code>web_fetch</code><small>parse a URL</small></div>
+      <div class="tool"><code>image_search</code><small>web images</small></div>
+      <div class="tool"><code>generate_image</code><small>text/edit → image</small></div>
+      <div class="tool"><code>generate_video</code><small>text → video (Veo)</small></div>
+      <div class="tool"><code>generate_audio</code><small>text → speech</small></div>
+      <div class="tool"><code>transcribe_audio</code><small>audio → text</small></div>
+      <div class="tool"><code>generate_avatar</code><small>talking-head</small></div>
+      <div class="tool"><code>create_table</code><small>+ update_table</small></div>
+      <div class="tool"><code>create_document</code><small>+ update_document</small></div>
+      <div class="tool"><code>publish_webpage</code><small>+ publish_slides</small></div>
+      <div class="tool"><code>generate_map</code><small>+ geocode/directions</small></div>
+      <div class="tool"><code>weather</code><small>+ timezone/places</small></div>
+      <div class="tool"><code>execute_integration</code><small>+ search/connect</small></div>
+      <div class="tool"><code>search_knowledge</code><small>skills/memories</small></div>
+      <div class="tool"><code>create_agent_thread</code><small>orchestrate</small></div>
+    </div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <p class="kicker">Honest by design</p>
+    <h2>Known limits &amp; how the gateway handles them</h2>
+    <div class="grid g2">
+      <ul class="clean">
+        <li><b>Latency:</b> every call runs a full agent pipeline — slower than raw inference; background + polling.</li>
+        <li><b>Streaming is emulated:</b> Hyperagent doesn't push partial tokens; deltas come from poll diffs.</li>
+        <li><b>Sampling params:</b> <code>temperature</code>/<code>top_p</code>/<code>seed</code> are best-effort or no-op.</li>
+      </ul>
+      <ul class="clean">
+        <li><b>No embeddings via MCP:</b> <code>/v1/embeddings</code> is a documented 501 or optional skill-backed adapter.</li>
+        <li><b>Per-user OAuth:</b> no headless API key upstream — each user authorizes once; gateway rotates refresh tokens.</li>
+        <li><b>Exact MCP schemas:</b> captured at build time via a live <code>tools/list</code> with a real token.</li>
+      </ul>
+    </div>
+    <div style="height:18px"></div>
+    <div class="note"><b>Naming caveat.</b> Tool/parameter names come from public docs (product language). Verbatim MCP input schemas and the agent runtime signatures are validated against the live server before the gateway's schemas are frozen.</div>
+  </div>
+</section>
+
+<section id="build">
+  <div class="wrap">
+    <p class="kicker">Delivery plan · harness epics</p>
+    <h2>Build phases <span class="cnt">// intake #1 · high-risk lane</span></h2>
+    <p class="sub">Recorded in the repository harness: intake #1, decision 0009, six product contracts, and these candidate epics.</p>
+    <div class="scroll"><table class="tbl">
+      <thead><tr><th>Epic</th><th>Scope</th><th>Risk</th></tr></thead>
+      <tbody>
+        <tr><td>E01 Service scaffold</td><td>FastAPI, config, <code>/v1/health</code>, UpstreamAdapter + MockAdapter, tests</td><td><span class="pill p-map">normal</span></td></tr>
+        <tr><td>E02 MCP upstream adapter</td><td>JSON-RPC client, OAuth store/refresh, core tools, live schema capture</td><td><span class="pill p-ph">high-risk</span></td></tr>
+        <tr><td>E03 Models endpoint</td><td><code>/v1/models</code> from <code>list_agents</code>; model↔agent cache</td><td><span class="pill p-map">normal</span></td></tr>
+        <tr><td>E04 Chat Completions</td><td>full attribute handling; messages→thread; poll→response</td><td><span class="pill p-ph">high-risk</span></td></tr>
+        <tr><td>E05 Streaming</td><td>emulated SSE chunks via poll diff</td><td><span class="pill p-map">normal</span></td></tr>
+        <tr><td>E06 Tool bridge</td><td>catalog, <code>/v1/tools</code>, observability + directed + tool-runner</td><td><span class="pill p-ph">high-risk</span></td></tr>
+        <tr><td>E07 Responses API</td><td><code>/v1/responses</code> + background + <code>previous_response_id</code></td><td><span class="pill p-ph">high-risk</span></td></tr>
+        <tr><td>E08 Media &amp; audio</td><td><code>/v1/images/*</code>, <code>/v1/audio/*</code> → media tools</td><td><span class="pill p-map">normal</span></td></tr>
+        <tr><td>E09 Files</td><td><code>/v1/files*</code> → attachment upload + registry</td><td><span class="pill p-map">normal</span></td></tr>
+        <tr><td>E10 Auth &amp; onboarding</td><td>gateway keys + policy; per-user OAuth; multi-tenant</td><td><span class="pill p-ph">high-risk</span></td></tr>
+        <tr><td>E11 Embeddings &amp; long tail</td><td>embeddings fallback, moderations, completions, batches</td><td><span class="pill p-map">normal</span></td></tr>
+        <tr><td>E12 Packaging &amp; docs</td><td>Docker, compose, README, client examples, test matrix</td><td><span class="pill p-ok">tiny</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="foot-tag">Hyperagent.com-to-API · spec reference · compiled 2026-07-19</p>
+    <p>Sources: hyperagent.com/docs (reference/mcp-server, reference/available-tools, concepts/*) + live endpoint probing.
+       Canonical spec lives in <code>docs/product/</code> and decision <code>0009</code> in the repository harness.</p>
+  </div>
+</footer>
+</body>
+</html>
