@@ -59,6 +59,10 @@ Invoke-RestMethod -Uri http://localhost:8000/v1/chat/completions -Method Post `
   -Body '{"model":"agent_default","messages":[{"role":"user","content":"Xin chào"}]}'
 ```
 
+> Chữ có dấu (tiếng Việt) cũng chạy — gateway tự sửa body Latin-1/CP1252 của
+> Windows. Muốn chuẩn tuyệt đối, dùng PowerShell 7 hoặc
+> `-Body ([Text.Encoding]::UTF8.GetBytes($body))`.
+
 Không cần curl? Cứ chạy `hga agents` — nếu liệt kê được agent là chạy tốt.
 
 ## 3. Kết nối Hyperagent thật

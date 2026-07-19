@@ -25,6 +25,66 @@ from .translate import (build_chat_completion, extract_file_ids, flatten_message
 from .upstream.manager import UpstreamManager
 
 
+def _fix_json_bytes(body: bytes) -> bytes:
+    """Tolerate non-UTF-8 JSON bodies (e.g. Windows PowerShell 5.1 sends strings
+    as Latin-1/CP1252). Try UTF-8; on failure, decode as cp1252/latin-1 and
+    re-encode as UTF-8 so downstream JSON parsing succeeds."""
+    if not body:
+        return body
+    try:
+        body.decode("utf-8")
+        return body
+    except UnicodeDecodeError:
+        for enc in ("cp1252", "latin-1"):
+            try:
+                return body.decode(enc).encode("utf-8")
+            except Exception:
+                continue
+        return body
+
+
+class _EncodingFixMiddleware:
+    """ASGI middleware: repair mis-encoded JSON request bodies before routing."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            return await self.app(scope, receive, send)
+        headers = dict(scope.get("headers") or [])
+        ctype = headers.get(b"content-type", b"").decode("latin-1").lower()
+        if "application/json" not in ctype:
+            return await self.app(scope, receive, send)
+
+        body = b""
+        while True:
+            msg = await receive()
+            if msg["type"] == "http.request":
+                body += msg.get("body", b"")
+                if not msg.get("more_body", False):
+                    break
+            elif msg["type"] == "http.disconnect":
+                return await self.app(scope, receive, send)
+
+        fixed = _fix_json_bytes(body)
+        # keep content-length in sync with the (possibly re-encoded) body
+        new_headers = [(k, v) for (k, v) in scope.get("headers", []) if k != b"content-length"]
+        new_headers.append((b"content-length", str(len(fixed)).encode("latin-1")))
+        scope = dict(scope, headers=new_headers)
+
+        sent = False
+
+        async def receive_fixed():
+            nonlocal sent
+            if not sent:
+                sent = True
+                return {"type": "http.request", "body": fixed, "more_body": False}
+            return {"type": "http.disconnect"}
+
+        return await self.app(scope, receive_fixed, send)
+
+
 def create_app(settings: Optional[Settings] = None, adapter=None) -> FastAPI:
     settings = settings or default_settings
 
@@ -39,6 +99,7 @@ def create_app(settings: Optional[Settings] = None, adapter=None) -> FastAPI:
         app.state.store.close()
 
     app = FastAPI(title="Hyperagent OpenAI Gateway", version=__version__, lifespan=lifespan)
+    app.add_middleware(_EncodingFixMiddleware)  # tolerate Latin-1/CP1252 JSON bodies
 
     @app.exception_handler(OAIError)
     async def _oai(_: Request, exc: OAIError):

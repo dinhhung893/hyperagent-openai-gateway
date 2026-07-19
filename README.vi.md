@@ -192,6 +192,9 @@ Invoke-RestMethod -Uri http://localhost:8000/v1/chat/completions -Method Post `
   -Body '{"model":"hyperagent-default","messages":[{"role":"user","content":"Xin chào"}]}'
 ```
 
+> Chữ có dấu (tiếng Việt) cũng chạy — gateway tự sửa mã hóa Latin-1/CP1252 của
+> Windows. Muốn chuẩn tuyệt đối, dùng PowerShell 7.
+
 **Cursor / Continue / LibreChat / OpenWebUI:** đặt **Base URL** OpenAI là
 `http://localhost:8000/v1`, **API key** là một trong các `SHIM_API_KEYS`, và
 **model** là một agent id lấy từ `GET /v1/models`.

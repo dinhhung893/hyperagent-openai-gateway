@@ -192,6 +192,9 @@ Invoke-RestMethod -Uri http://localhost:8000/v1/chat/completions -Method Post `
   -Body '{"model":"hyperagent-default","messages":[{"role":"user","content":"Hello"}]}'
 ```
 
+> Non-ASCII bodies (Vietnamese, etc.) work too — the gateway auto-repairs Windows
+> Latin-1/CP1252 encoding. For strict correctness, use PowerShell 7.
+
 **Cursor / Continue / LibreChat / OpenWebUI:** set the OpenAI **Base URL** to
 `http://localhost:8000/v1`, the **API key** to one of your `SHIM_API_KEYS`, and
 the **model** to an agent id from `GET /v1/models`.

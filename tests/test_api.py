@@ -160,6 +160,16 @@ async def test_auth_enforced():
             assert r2.status_code == 200
 
 
+async def test_latin1_body_is_tolerated(client):
+    # PowerShell 5.1 sends non-ASCII bodies as Latin-1/CP1252; the gateway must
+    # repair the encoding instead of failing to parse the JSON.
+    body = '{"model":"agent_default","messages":[{"role":"user","content":"Xin chào"}]}'
+    r = await client.post("/v1/chat/completions", content=body.encode("latin-1"),
+                          headers={"content-type": "application/json"})
+    assert r.status_code == 200
+    assert "Xin ch" in r.json()["choices"][0]["message"]["content"]
+
+
 async def test_chat_is_stateless(client):
     # Chat is stateless: each call is a fresh self-contained thread (clients
     # resend full history), so fingerprints (threadIds) differ.

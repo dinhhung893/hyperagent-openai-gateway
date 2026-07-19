@@ -59,6 +59,10 @@ Invoke-RestMethod -Uri http://localhost:8000/v1/chat/completions -Method Post `
   -Body '{"model":"agent_default","messages":[{"role":"user","content":"Hello"}]}'
 ```
 
+> Non-ASCII text (Vietnamese, etc.) works too — the gateway auto-repairs Windows
+> Latin-1/CP1252 bodies. For strict correctness use PowerShell 7, or
+> `-Body ([Text.Encoding]::UTF8.GetBytes($body))`.
+
 No curl needed at all? Just run `hga agents` — if it lists agents, it works.
 
 ## 3. Connect the real Hyperagent
