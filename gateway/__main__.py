@@ -1,12 +1,12 @@
-"""Run the gateway: python -m gateway  (or: uvicorn gateway.app:app)."""
-import os
+"""Run the CLI without a console script:  python -m gateway [args]
 
-import uvicorn
+This is identical to the `hyperagent-gateway` / `hga` command, but avoids PATH/
+shim problems on machines with multiple Python installs. Examples:
+    python -m gateway serve --upstream mock
+    python -m gateway agents --upstream mock
+    python -m gateway login
+"""
+from .cli import main
 
 if __name__ == "__main__":
-    uvicorn.run(
-        "gateway.app:app",
-        host=os.environ.get("GATEWAY_HOST", "0.0.0.0"),
-        port=int(os.environ.get("GATEWAY_PORT", "8000")),
-        log_level=os.environ.get("GATEWAY_LOG_LEVEL", "info"),
-    )
+    raise SystemExit(main())

@@ -10,6 +10,16 @@ def test_version_exits_zero():
     assert e.value.code == 0
 
 
+def test_python_m_gateway_runs_cli():
+    # `python -m gateway ...` must route to the CLI (shim-free entry point).
+    import subprocess
+    import sys
+    out = subprocess.run([sys.executable, "-m", "gateway", "--version"],
+                         capture_output=True, text=True)
+    assert out.returncode == 0
+    assert "hyperagent-gateway" in out.stdout
+
+
 def test_parser_serve_flags():
     args = cli.build_parser().parse_args(["serve", "--port", "1234", "--upstream", "mock"])
     assert args.command == "serve" and args.port == "1234" and args.upstream == "mock"
