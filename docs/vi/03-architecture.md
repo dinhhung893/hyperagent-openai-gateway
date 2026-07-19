@@ -64,16 +64,12 @@ nguồn. Mỗi lượt là một thread mới, tự chứa đầy đủ.**
 - **Phát hiện câu trả lời mới:** việc chờ yêu cầu phải có một tin nhắn assistant
   *mới* vượt mốc đã ghi (`wait_for_new_assistant`), loại bỏ tình huống trả lời cũ.
 
-Quyết định này được ghi tại
-[`docs/decisions/0010`](../decisions/0010-stateless-gateway-context-reconstruction.md).
-
 ## Thượng nguồn (đã xác minh thực tế)
 
 - Endpoint `https://hyperagent.com/api/mcp`, JSON-RPC 2.0 qua POST.
 - OAuth 2.1 (Authorization Code + PKCE, Dynamic Client Registration, gia hạn qua
   `offline_access`); **không có API key**.
 - Sáu công cụ; `get_thread` trả về `{thread, messages[], isRunning}`.
-- Chi tiết: [`docs/product/upstream-mcp.md`](../product/upstream-mcp.md).
 
 ## Hai ranh giới xác thực
 

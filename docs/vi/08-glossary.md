@@ -44,5 +44,3 @@ Giải nghĩa bằng lời đơn giản, đại khái từ dễ đến khó.
   người dùng/tài khoản tách biệt.
 - **Phi trạng thái (stateless)** — mỗi yêu cầu đứng độc lập; máy chủ không giữ trí
   nhớ theo người dùng giữa các lần gọi.
-- **`repository-harness`** — bộ khung dùng để *phát triển* repo này (intake, story,
-  quyết định, test). Xem [Đóng góp](09-contributing.md).

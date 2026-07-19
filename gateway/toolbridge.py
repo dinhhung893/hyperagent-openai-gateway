@@ -1,7 +1,7 @@
 """Tool bridge: expose Hyperagent's tool catalog as OpenAI tool definitions,
 and translate agent tool activity into OpenAI tool_calls.
 
-See docs/product/tool-bridge.md for the three exposure modes.
+See docs/en/05-tool-bridge.md for the three exposure modes.
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def _fn(name: str, description: str, params: dict) -> dict:
 
 _STR = {"type": "string"}
 
-# Canonical catalog (1:1 with docs/product/capability-catalog.md). Kept compact;
+# Canonical catalog of Hyperagent capabilities. Kept compact;
 # parameter schemas are the gateway's source of truth and can be refined against
 # the live runtime signatures.
 CANONICAL_TOOLS: list[dict] = [

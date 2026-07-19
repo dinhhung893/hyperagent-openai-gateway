@@ -16,12 +16,9 @@ top (English is the default; Tiếng Việt is the mirror).
 | 06 | [Deployment & security](06-deployment.md) | Docker, VPS, HTTPS, multi-tenant, OAuth, secrets. |
 | 07 | [FAQ](07-faq.md) | Common questions, from beginner to advanced. |
 | 08 | [Glossary](08-glossary.md) | Plain-language definitions of every technical term. |
-| 09 | [Contributing](09-contributing.md) | Dev setup, tests, and the harness workflow. |
+| 09 | [Contributing](09-contributing.md) | Dev setup, tests, and conventions. |
 
 **Reading paths**
 - *Never built with an API before?* 01 → 02 → 08 (glossary as needed).
 - *Experienced developer?* 02 → 04 → 05 → 06.
 - *Want to contribute?* 03 → 09.
-
-The **canonical technical spec** (English, used by the build process) lives in
-[`docs/product/`](../product/README.md).

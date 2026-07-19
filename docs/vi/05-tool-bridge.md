@@ -55,5 +55,3 @@ search_integrations · execute_integration · search_knowledge · create_agent_t
   đó — không bao giờ chạy trên máy chủ cổng.
 - Việc ghi qua tích hợp vẫn tuân theo quy tắc phê duyệt/không giám sát của
   Hyperagent.
-
-Đặc tả canonical: [`docs/product/tool-bridge.md`](../product/tool-bridge.md).

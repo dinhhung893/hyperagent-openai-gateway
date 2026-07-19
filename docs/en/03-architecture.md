@@ -66,16 +66,12 @@ fresh, self-contained thread.**
   captured baseline (`wait_for_new_assistant`), which removes the stale-reply
   race.
 
-This decision is recorded in
-[`docs/decisions/0010`](../decisions/0010-stateless-gateway-context-reconstruction.md).
-
 ## The upstream (confirmed live)
 
 - Endpoint `https://hyperagent.com/api/mcp`, JSON-RPC 2.0 over POST.
 - OAuth 2.1 (Authorization Code + PKCE, Dynamic Client Registration, refresh via
   `offline_access`); **no API keys**.
 - Six tools; `get_thread` returns `{thread, messages[], isRunning}`.
-- Full details: [`docs/product/upstream-mcp.md`](../product/upstream-mcp.md).
 
 ## Auth boundaries
 

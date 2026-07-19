@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """One-time Hyperagent MCP OAuth login (Authorization Code + PKCE + DCR).
 
-Performs the browser handshake documented in docs/product/upstream-mcp.md and
+Performs the browser handshake described in docs/en/06-deployment.md and
 writes a refresh-capable token bundle the gateway can load and auto-rotate.
 
 Usage:

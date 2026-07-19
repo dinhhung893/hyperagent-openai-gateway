@@ -93,5 +93,3 @@ Transparent keyword **heuristic** across OpenAI categories. Returns
 
 ## `GET /v1/health`
 Liveness: `{ "status": "ok", "version": "…", "upstream": "mcp|mock" }`.
-
-Parameter-level canonical spec: [`docs/product/openai-compatibility.md`](../product/openai-compatibility.md).

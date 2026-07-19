@@ -55,5 +55,3 @@ search_integrations · execute_integration · search_knowledge · create_agent_t
 - Tools run inside the Hyperagent agent's own sandbox with that user's
   permissions — never on the gateway host.
 - Integration writes still obey Hyperagent's own approval/unattended rules.
-
-Canonical spec: [`docs/product/tool-bridge.md`](../product/tool-bridge.md).

@@ -25,30 +25,15 @@ trên* `UpstreamAdapter`, còn phần đặc thù Hyperagent *phía dưới* nó
 3. Dịch qua lại định dạng OpenAI trong `gateway/translate.py`.
 4. Thêm test trong `tests/` dùng adapter mock (và nếu hướng tới người dùng, thêm
    test bằng `openai` SDK).
-5. Cập nhật `docs/en` **và** `docs/vi`, cùng `docs/product/openai-compatibility.md`.
-
-## Quy trình harness (cách repo được vận hành)
-
-Repo dùng **[repository-harness](https://github.com/hoangnb24/repository-harness)** —
-một tầng quy trình nhẹ cho agent lập trình. Tóm gọn:
-
-1. **Intake** — phân loại thay đổi (tiny / normal / high-risk) và ghi lại:
-   `scripts/bin/harness-cli intake …` (xem `docs/FEATURE_INTAKE.md`).
-2. **Story** — với công việc thật, theo dõi bằng
-   `harness-cli story add/update/complete`.
-3. **Decision** — khi hành vi/kiến trúc đổi, viết `docs/decisions/NNNN-*.md` và
-   `harness-cli decision add`.
-4. **Proof** — giữ ma trận test trung thực (`harness-cli query matrix --active`).
-
-> Binary `harness-cli` **không** được commit (bị gitignore). Trên bản clone mới,
-> cài/bootstrap theo `AGENTS.md → Local Project Notes` (dự án này build từ source
-> vì binary phát hành cần glibc mới hơn).
+5. Cập nhật tài liệu ở **cả** `docs/en/` và `docs/vi/` (giữ đồng bộ).
 
 ## Quy ước
 
 - Trung thực về giới hạn: thà trả `501` rõ ràng còn hơn giả vờ có tính năng.
-- Mỗi lượt thượng nguồn phải tự chứa đầy đủ (xem quyết định 0010).
+- Mỗi lượt thượng nguồn phải tự chứa đầy đủ (xem thiết kế phi trạng thái ở
+  [Kiến trúc](03-architecture.md)) — không dựa vào trí nhớ xuyên lượt của thượng nguồn.
 - Giữ tài liệu Anh và Việt đồng bộ; cả hai đều có phần nút chuyển ngôn ngữ.
+- Chạy `pytest tests/ -q` trước khi mở PR.
 
 ## Báo lỗi
 

@@ -46,5 +46,3 @@ Plain-language definitions, roughly beginner → advanced.
 - **Multi-tenant** — one server safely serving many separate users/accounts.
 - **Stateless** — each request stands alone; the server keeps no per-user memory
   between calls.
-- **`repository-harness`** — the framework used to *develop* this repo (intake,
-  stories, decisions, tests). See [Contributing](09-contributing.md).

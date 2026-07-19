@@ -37,7 +37,6 @@ included).
 - [Deployment](#deployment)
 - [Testing](#testing)
 - [Project structure](#project-structure)
-- [How this repo is developed](#how-this-repo-is-developed)
 - [Limitations](#limitations)
 - [FAQ](#faq)
 - [License](#license)
@@ -238,18 +237,8 @@ gateway/            FastAPI app + translation + upstream adapters
 tools/              oauth_login.py, oauth_remote.py (one-time OAuth helpers)
 tests/              46 tests (mock upstream + OpenAI SDK)
 docs/en/  docs/vi/  bilingual documentation
-docs/product/       canonical technical spec (English)
 Dockerfile  requirements.txt  pyproject.toml
 ```
-
-## How this repo is developed
-
-This repository is built with **[repository-harness](https://github.com/hoangnb24/repository-harness)**,
-a lightweight "operating system" for coding agents (intake classification, story
-packets, decision records, a test matrix). Those files (`AGENTS.md`, `docs/HARNESS*.md`,
-`docs/product/`, `docs/decisions/`) describe *how the repo is built*, not the
-product itself. If you just want to *use* the gateway, you can ignore them.
-See [Contributing](docs/en/09-contributing.md).
 
 ## Limitations
 

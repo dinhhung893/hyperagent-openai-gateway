@@ -92,6 +92,3 @@ thông suốt. Đặt `GATEWAY_EMBEDDINGS=off` để trả `501`, hoặc cắm n
 
 ## `GET /v1/health`
 Kiểm tra sống: `{ "status": "ok", "version": "…", "upstream": "mcp|mock" }`.
-
-Đặc tả canonical theo từng tham số:
-[`docs/product/openai-compatibility.md`](../product/openai-compatibility.md).

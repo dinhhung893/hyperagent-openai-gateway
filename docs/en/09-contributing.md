@@ -25,29 +25,15 @@ See [Architecture](03-architecture.md). The golden rule: keep OpenAI translation
 3. Translate to/from OpenAI shapes in `gateway/translate.py`.
 4. Add a test in `tests/` using the mock adapter (and, if user-facing, an
    `openai` SDK test).
-5. Update `docs/en` **and** `docs/vi`, plus `docs/product/openai-compatibility.md`.
-
-## The harness workflow (how this repo is run)
-
-This repo uses **[repository-harness](https://github.com/hoangnb24/repository-harness)** —
-a lightweight process layer for coding agents. In short:
-
-1. **Intake** — classify a change (tiny / normal / high-risk) and record it:
-   `scripts/bin/harness-cli intake …` (see `docs/FEATURE_INTAKE.md`).
-2. **Story** — for real work, track it: `harness-cli story add/update/complete`.
-3. **Decision** — when behavior/architecture changes, write a
-   `docs/decisions/NNNN-*.md` and `harness-cli decision add`.
-4. **Proof** — keep the test matrix honest (`harness-cli query matrix --active`).
-
-> The `harness-cli` binary is **not** committed (it's gitignored). On a fresh
-> clone, install/bootstrap it per `AGENTS.md → Local Project Notes` (this project
-> builds it from source because the release binary needs a newer glibc).
+5. Update the docs in **both** `docs/en/` and `docs/vi/` (keep them in sync).
 
 ## Conventions
 
 - Be honest about limits: prefer an explicit `501` over faking a feature.
-- Every upstream turn must be self-contained (see decision 0010).
+- Keep every upstream turn self-contained (see the stateless design in
+  [Architecture](03-architecture.md)) — never rely on upstream cross-turn memory.
 - Keep English and Vietnamese docs in sync; both carry the language-switch header.
+- Run `pytest tests/ -q` before opening a PR.
 
 ## Reporting issues
 

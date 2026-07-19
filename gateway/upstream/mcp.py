@@ -7,7 +7,7 @@ loaded from a token file and refreshed via the refresh_token grant.
 NOTE: The exact input schemas / return envelopes of the six tools are not
 published; parsing is defensive and centralized in the _parse_* helpers below.
 Run `tools/list` once with a real token and adjust these helpers to the verbatim
-schemas (see docs/product/upstream-mcp.md "build-time task").
+schemas (fetch them live with a real token via the tools/list JSON-RPC call).
 """
 from __future__ import annotations
 
@@ -195,7 +195,7 @@ class OAuthTokenManager:
         raise RuntimeError(
             "No Hyperagent OAuth token available. Complete the one-time browser "
             "authorization and write the token bundle to the token file "
-            f"({self.token_file}). See docs/product/auth.md."
+            f"({self.token_file}). See docs/en/06-deployment.md."
         )
 
     async def _refresh(self, client: httpx.AsyncClient) -> None:

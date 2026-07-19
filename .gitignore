@@ -1,24 +1,4 @@
-# Harness durable layer — each project instance generates its own data.
-harness.db
-harness.db-wal
-harness.db-shm
-
-# macOS Finder metadata.
-.DS_Store
-
-# Rust build output for harness tooling.
-target/
-dist/
-
-# Downloaded Harness CLI binary for installed project instances.
-scripts/bin/harness-cli
-scripts/bin/harness-cli.exe
-
-.harness/*
-!.harness/changesets/
-!.harness/changesets/*.changeset.jsonl
-
-# --- OpenAI gateway (Python) ---
+# ── Python ─────────────────────────────────────────────
 __pycache__/
 *.pyc
 .pytest_cache/
@@ -26,7 +6,45 @@ __pycache__/
 venv/
 *.egg-info/
 .env
-# gateway local state + OAuth tokens (never commit)
+.DS_Store
+
+# ── Gateway local state & secrets (never commit) ───────
 .hyperagent-gateway/
 *.tokens.json
 gateway-state.db
+
+# ── Development framework (kept LOCAL, never synced) ────
+# The repository-harness workflow lives on disk so work can continue,
+# but it must never be tracked or pushed to GitHub.
+AGENTS.md
+CLAUDE.md
+harness.db
+harness.db-wal
+harness.db-shm
+.harness/
+target/
+dist/
+scripts/
+docs/HARNESS.md
+docs/HARNESS_AUDIT.md
+docs/HARNESS_BACKLOG.md
+docs/HARNESS_COMPONENTS.md
+docs/HARNESS_MATURITY.md
+docs/FEATURE_INTAKE.md
+docs/CONTEXT_RULES.md
+docs/GLOSSARY.md
+docs/IMPROVEMENT_PROTOCOL.md
+docs/TOOL_REGISTRY.md
+docs/TRACE_SPEC.md
+docs/ARCHITECTURE.md
+docs/README.md
+docs/TEST_MATRIX.md
+docs/product/
+docs/decisions/
+docs/templates/
+docs/contracts/
+docs/stories/
+
+# ── Draft / scratch files ──────────────────────────────
+GATEWAY.md
+reference.html

@@ -59,5 +59,5 @@ runs and are accepted-but-ignored or return nulls. See
 
 **Is this affiliated with OpenAI?** No. It's an independent compatibility layer.
 
-**Where's the source of truth for behavior?** The canonical spec in
-[`docs/product/`](../product/README.md) and the tests (`pytest tests/`).
+**Where's the source of truth for behavior?** The code and the tests
+(`pytest tests/`).
