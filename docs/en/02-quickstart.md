@@ -63,7 +63,9 @@ Invoke-RestMethod -Uri http://localhost:8000/v1/chat/completions -Method Post `
 > Latin-1/CP1252 bodies. For strict correctness use PowerShell 7, or
 > `-Body ([Text.Encoding]::UTF8.GetBytes($body))`.
 
-No curl needed at all? Just run `hga agents` — if it lists agents, it works.
+No curl needed at all? Run `hga agents --upstream mock` — it lists the built-in
+mock agents. (`hga agents` without a flag uses your configured upstream, which
+defaults to the real `mcp` and needs `hga login` first.)
 
 ## 3. Connect the real Hyperagent
 

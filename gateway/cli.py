@@ -14,9 +14,35 @@ from . import __version__
 
 
 def _set_env(mapping: dict) -> None:
+    """Set env vars for the values the user actually provided (skip None), so CLI
+    flags override, but absent flags leave env/.env/defaults intact."""
     for k, v in mapping.items():
         if v is not None:
             os.environ[k] = str(v)
+
+
+def _make_ctx(args=None):
+    """Build (settings, adapter) honoring --upstream/--token-file when provided."""
+    from .config import load_env_files
+    load_env_files()  # ensure .env is applied before reading settings
+    if args is not None:
+        if getattr(args, "upstream", None):
+            os.environ["GATEWAY_UPSTREAM"] = args.upstream
+        if getattr(args, "token_file", None):
+            os.environ["HYPERAGENT_TOKEN_FILE"] = args.token_file
+    from .config import Settings
+    from .upstream import build_adapter
+    settings = Settings()
+    return settings, build_adapter(settings)
+
+
+def _upstream_error(e: Exception, settings) -> None:
+    print(f"Could not reach the Hyperagent upstream (upstream={settings.upstream}).",
+          file=sys.stderr)
+    print(f"  {e}", file=sys.stderr)
+    if settings.upstream == "mcp":
+        print("Hint: run 'hga login' first, or try offline with '--upstream mock'.",
+              file=sys.stderr)
 
 
 # --------------------------------------------------------------------------- #
@@ -71,38 +97,39 @@ def cmd_login(args) -> int:
 
 
 def cmd_serve(args) -> int:
+    from .config import load_env_files
+    load_env_files()  # honor .env; CLI flags below still take precedence
     _set_env({
         "GATEWAY_HOST": args.host, "GATEWAY_PORT": args.port,
         "GATEWAY_UPSTREAM": args.upstream, "HYPERAGENT_TOKEN_FILE": args.token_file,
         "SHIM_API_KEYS": args.api_keys, "GATEWAY_DEFAULT_AGENT": args.default_agent,
         "GATEWAY_EXEC_MODE": args.exec_mode, "GATEWAY_LOG_LEVEL": args.log_level,
     })
+    host = os.environ.get("GATEWAY_HOST", "0.0.0.0")
+    port = int(os.environ.get("GATEWAY_PORT", "8000"))
+    log_level = os.environ.get("GATEWAY_LOG_LEVEL", "info")
+    upstream = os.environ.get("GATEWAY_UPSTREAM", "mcp")
     import uvicorn
-    print(f"Serving OpenAI-compatible gateway on http://{args.host}:{args.port}/v1  "
-          f"(upstream={os.environ.get('GATEWAY_UPSTREAM', 'mcp')})")
-    uvicorn.run("gateway.app:app", host=args.host, port=int(args.port),
-                reload=args.reload, log_level=args.log_level)
+    print(f"Serving OpenAI-compatible gateway on http://{host}:{port}/v1  (upstream={upstream})")
+    uvicorn.run("gateway.app:app", host=host, port=port, reload=bool(args.reload),
+                log_level=log_level)
     return 0
 
 
-def _make_ctx():
-    from .config import Settings
-    from .upstream import build_adapter
-    settings = Settings()
-    return settings, build_adapter(settings)
-
-
 def cmd_agents(args) -> int:
-    settings, adapter = _make_ctx()
+    settings, adapter = _make_ctx(args)
 
     async def run():
         try:
             agents = await adapter.list_agents()
+        except Exception as e:  # no ugly traceback for expected conditions
+            _upstream_error(e, settings)
+            return 1
         finally:
             await adapter.aclose()
         if not agents:
-            print("No agents found. Create a named agent in Hyperagent, or run with "
-                  "GATEWAY_UPSTREAM=mock.")
+            print("No agents found. Create a named agent in Hyperagent "
+                  "(or try '--upstream mock').")
             return 1
         print(f"{'ID':<28} NAME")
         print("-" * 50)
@@ -114,11 +141,11 @@ def cmd_agents(args) -> int:
 
 
 def cmd_doctor(args) -> int:
-    settings, adapter = _make_ctx()
+    settings, adapter = _make_ctx(args)
     print(f"upstream        : {settings.upstream}")
     print(f"mcp endpoint    : {settings.mcp_endpoint}")
-    print(f"token file      : {settings.token_file} "
-          f"({'present' if os.path.exists(os.path.expanduser(settings.token_file)) else 'MISSING'})")
+    tok = os.path.exists(os.path.expanduser(settings.token_file))
+    print(f"token file      : {settings.token_file} ({'present' if tok else 'MISSING'})")
     print(f"client keys     : {'set' if settings.key_set else 'dev mode (any key)'}")
 
     async def run():
@@ -134,19 +161,37 @@ def cmd_doctor(args) -> int:
 
     code = asyncio.run(run())
     print("\nStatus:", "ready ✓" if code == 0 else "needs attention ✗")
+    if code != 0 and settings.upstream == "mcp":
+        print("Hint: run 'hga login' first, or try offline with '--upstream mock'.")
     return code
 
 
 def cmd_quickstart(args) -> int:
-    token = os.path.expanduser(os.environ.get("HYPERAGENT_TOKEN_FILE",
-                               "~/.hyperagent-gateway/tokens.json"))
-    if args.upstream != "mock" and not os.path.exists(token):
+    from .config import load_env_files
+    load_env_files()
+    upstream = args.upstream or os.environ.get("GATEWAY_UPSTREAM", "mcp")
+    token = os.path.expanduser(args.token_file
+                               or os.environ.get("HYPERAGENT_TOKEN_FILE",
+                                                 "~/.hyperagent-gateway/tokens.json"))
+    if upstream != "mock" and not os.path.exists(token):
         from . import oauth
         oauth.login()
     return cmd_serve(args)
 
 
 # --------------------------------------------------------------------------- #
+def _add_serve_flags(p) -> None:
+    p.add_argument("--host", default=None)
+    p.add_argument("--port", default=None)
+    p.add_argument("--upstream", default=None, choices=["mcp", "mock"])
+    p.add_argument("--token-file", default=None)
+    p.add_argument("--api-keys", default=None, help="comma-separated client keys")
+    p.add_argument("--default-agent", default=None)
+    p.add_argument("--exec-mode", default=None, choices=["roundtrip", "auto"])
+    p.add_argument("--log-level", default=None)
+    p.add_argument("--reload", action="store_true", help="dev auto-reload")
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="hyperagent-gateway",
                                 description="OpenAI-compatible API gateway for Hyperagent.com")
@@ -168,35 +213,21 @@ def build_parser() -> argparse.ArgumentParser:
     pl.set_defaults(func=cmd_login)
 
     ps = sub.add_parser("serve", help="run the gateway server")
-    ps.add_argument("--host", default=os.environ.get("GATEWAY_HOST", "0.0.0.0"))
-    ps.add_argument("--port", default=os.environ.get("GATEWAY_PORT", "8000"))
-    ps.add_argument("--upstream", default=os.environ.get("GATEWAY_UPSTREAM", "mcp"),
-                    choices=["mcp", "mock"])
-    ps.add_argument("--token-file", default=None)
-    ps.add_argument("--api-keys", default=None, help="comma-separated client keys")
-    ps.add_argument("--default-agent", default=None)
-    ps.add_argument("--exec-mode", default=None, choices=[None, "roundtrip", "auto"])
-    ps.add_argument("--log-level", default=os.environ.get("GATEWAY_LOG_LEVEL", "info"))
-    ps.add_argument("--reload", action="store_true", help="dev auto-reload")
+    _add_serve_flags(ps)
     ps.set_defaults(func=cmd_serve)
 
     pa = sub.add_parser("agents", help="list your Hyperagent agents")
+    pa.add_argument("--upstream", default=None, choices=["mcp", "mock"])
+    pa.add_argument("--token-file", default=None)
     pa.set_defaults(func=cmd_agents)
 
     pd = sub.add_parser("doctor", help="check config + upstream reachability")
+    pd.add_argument("--upstream", default=None, choices=["mcp", "mock"])
+    pd.add_argument("--token-file", default=None)
     pd.set_defaults(func=cmd_doctor)
 
     pq = sub.add_parser("quickstart", help="login (if needed) then serve")
-    pq.add_argument("--host", default=os.environ.get("GATEWAY_HOST", "0.0.0.0"))
-    pq.add_argument("--port", default=os.environ.get("GATEWAY_PORT", "8000"))
-    pq.add_argument("--upstream", default=os.environ.get("GATEWAY_UPSTREAM", "mcp"),
-                    choices=["mcp", "mock"])
-    pq.add_argument("--token-file", default=None)
-    pq.add_argument("--api-keys", default=None)
-    pq.add_argument("--default-agent", default=None)
-    pq.add_argument("--exec-mode", default=None, choices=[None, "roundtrip", "auto"])
-    pq.add_argument("--log-level", default="info")
-    pq.add_argument("--reload", action="store_true")
+    _add_serve_flags(pq)
     pq.set_defaults(func=cmd_quickstart)
 
     return p

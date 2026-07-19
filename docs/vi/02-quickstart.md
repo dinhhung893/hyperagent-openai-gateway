@@ -63,7 +63,9 @@ Invoke-RestMethod -Uri http://localhost:8000/v1/chat/completions -Method Post `
 > Windows. Muốn chuẩn tuyệt đối, dùng PowerShell 7 hoặc
 > `-Body ([Text.Encoding]::UTF8.GetBytes($body))`.
 
-Không cần curl? Cứ chạy `hga agents` — nếu liệt kê được agent là chạy tốt.
+Không cần curl? Chạy `hga agents --upstream mock` — nó liệt kê các agent mock có
+sẵn. (`hga agents` không kèm cờ sẽ dùng upstream đã cấu hình, mặc định là `mcp`
+thật nên cần `hga login` trước.)
 
 ## 3. Kết nối Hyperagent thật
 

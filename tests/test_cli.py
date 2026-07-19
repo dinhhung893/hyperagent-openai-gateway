@@ -40,3 +40,21 @@ def test_doctor_against_mock(monkeypatch, capsys):
     out = capsys.readouterr().out
     assert rc == 0
     assert "ready" in out and "upstream" in out
+
+
+def test_agents_upstream_flag_overrides(monkeypatch, capsys):
+    # --upstream mock works even if the environment says mcp
+    monkeypatch.setenv("GATEWAY_UPSTREAM", "mcp")
+    rc = cli.main(["agents", "--upstream", "mock"])
+    assert rc == 0
+    assert "agent_default" in capsys.readouterr().out
+
+
+def test_agents_missing_token_is_graceful(monkeypatch, tmp_path, capsys):
+    # mcp upstream with no token must fail cleanly (return 1, a hint, no traceback,
+    # and no network — the token check raises before any HTTP call).
+    missing = str(tmp_path / "nope.json")
+    rc = cli.main(["agents", "--upstream", "mcp", "--token-file", missing])
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "Hint" in err and "hga login" in err
