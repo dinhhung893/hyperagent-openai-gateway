@@ -5,17 +5,36 @@
 Công cụ gói gọn trong một lệnh — `hyperagent-gateway` (bí danh **`hga`**). Cài xong,
 chỉ hai lệnh là chạy.
 
-## 1. Cài đặt (chọn một)
+## 1. Cài đặt
 
-| Cách | Lệnh | Hợp với |
+**Điều kiện tiên quyết:** Python 3.11+ (trừ Docker). Trên **Windows**, cài Python từ
+[python.org](https://www.python.org/downloads/) và tick *"Add python.exe to PATH"*
+(sẽ có lệnh `py`).
+
+**Cách phổ quát (Windows / macOS / Linux):**
+
+```bash
+pip install git+https://github.com/dinhhung893/hyperagent-openai-gateway
+# Windows PowerShell, nếu pip không có trên PATH:
+py -m pip install git+https://github.com/dinhhung893/hyperagent-openai-gateway
+```
+
+Sẽ có lệnh `hyperagent-gateway` (bí danh `hga`). Nếu shell không thấy lệnh, dùng
+`python -m gateway.cli …` (Windows: `py -m gateway.cli …`) là tương đương chính xác.
+
+**Các cách khác**
+
+| Cách | macOS / Linux | Windows (PowerShell) |
 | --- | --- | --- |
-| **pipx** ⭐ | `pipx install git+https://github.com/dinhhung893/hyperagent-openai-gateway` | CLI toàn cục gọn |
-| **uv** (không cài) | `uvx --from git+https://github.com/dinhhung893/hyperagent-openai-gateway hyperagent-gateway serve` | thử nhanh |
-| **Docker** | `docker compose up -d --build` | máy chủ |
-| **pip / nguồn** | `git clone … && cd … && pip install -e .` | lập trình |
-| **1 dòng** | `curl -fsSL https://raw.githubusercontent.com/dinhhung893/hyperagent-openai-gateway/main/install.sh \| bash` | cài có hướng dẫn |
+| pipx | `pipx install git+…` | `py -m pip install --user pipx; py -m pipx ensurepath` → mở lại → `pipx install git+…` |
+| uv | `uvx --from git+… hyperagent-gateway serve` | `irm https://astral.sh/uv/install.ps1 \| iex` → `uvx …` |
+| Docker | `docker compose up -d --build` | `docker compose up -d --build` |
+| 1 dòng | `curl -fsSL …/install.sh \| bash` | `irm …/install.ps1 \| iex` |
 
-Cần Python 3.11+ (trừ cách Docker).
+> **Windows/PowerShell:** `curl` là bí danh của `Invoke-WebRequest` và KHÔNG có
+> `bash`; dòng `curl … | bash` chỉ cho macOS/Linux/WSL — hãy dùng `install.ps1`.
+
+> Bên dưới, nếu Windows không tìm thấy `hga`, thay `hga` bằng `py -m gateway.cli`.
 
 ## 2. Thử ngoại tuyến (không cần tài khoản)
 

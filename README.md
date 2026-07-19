@@ -96,15 +96,34 @@ Key ideas:
 
 ## Quick start
 
-**1. Install** — pick one (all give you the `hyperagent-gateway` command, alias **`hga`**):
+**Prerequisites:** Python 3.11+ (except the Docker path). On **Windows**, install
+Python from [python.org](https://www.python.org/downloads/) and tick *"Add
+python.exe to PATH"* — that also gives you the `py` launcher.
 
-| Method | Command | Best for |
+**1. Install — the universal way** (works on Windows, macOS, Linux):
+
+```bash
+pip install git+https://github.com/dinhhung893/hyperagent-openai-gateway
+```
+> Windows PowerShell: if `pip` isn't found, use `py -m pip install git+…`.
+
+This gives the `hyperagent-gateway` command (alias `hga`). If your shell can't find
+it, the exact equivalent always works: `python -m gateway.cli …`
+(Windows: `py -m gateway.cli …`).
+
+<details><summary><b>Other install methods</b> — pipx · uv · Docker · one-liner</summary>
+
+| Method | macOS / Linux | Windows (PowerShell) |
 | --- | --- | --- |
-| **pipx** ⭐ | `pipx install git+https://github.com/dinhhung893/hyperagent-openai-gateway` | a clean global CLI |
-| **uv** (zero-install) | `uvx --from git+https://github.com/dinhhung893/hyperagent-openai-gateway hyperagent-gateway serve` | just trying it |
-| **Docker** ⭐ | `docker compose up -d --build` | servers |
-| **pip** (from a clone) | `pip install -e .` | development |
-| **one-liner** | `curl -fsSL https://raw.githubusercontent.com/dinhhung893/hyperagent-openai-gateway/main/install.sh \| bash` | guided setup |
+| **pipx** | `pipx install git+…` | `py -m pip install --user pipx; py -m pipx ensurepath` → reopen shell → `pipx install git+…` |
+| **uv** | `uvx --from git+… hyperagent-gateway serve` | `irm https://astral.sh/uv/install.ps1 \| iex` → `uvx --from git+… hyperagent-gateway serve` |
+| **Docker** | `docker compose up -d --build` | `docker compose up -d --build` |
+| **one-liner** | `curl -fsSL https://raw.githubusercontent.com/dinhhung893/hyperagent-openai-gateway/main/install.sh \| bash` | `irm https://raw.githubusercontent.com/dinhhung893/hyperagent-openai-gateway/main/install.ps1 \| iex` |
+
+> **Windows note:** in PowerShell, `curl` is an alias for `Invoke-WebRequest` and
+> there is no `bash`, so the `curl … \| bash` line is for macOS/Linux/WSL only.
+> Use `install.ps1` (via `irm … \| iex`) instead.
+</details>
 
 **2. Go live — two commands:**
 
@@ -112,11 +131,12 @@ Key ideas:
 hga login      # one-time Hyperagent sign-in (opens a browser)
 hga serve      # serves http://localhost:8000/v1
 ```
+> Windows without the command on PATH: `py -m gateway.cli login` then `py -m gateway.cli serve`.
 
 **Just trying it?** No account needed — run against the built-in mock:
 
 ```bash
-hga serve --upstream mock
+hga serve --upstream mock          # or:  py -m gateway.cli serve --upstream mock
 ```
 
 > Your Hyperagent account needs at least one **named agent** (the MCP server only

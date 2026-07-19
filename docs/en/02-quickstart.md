@@ -5,17 +5,36 @@
 The tool is one command — `hyperagent-gateway` (alias **`hga`**). Install it, then
 two commands take you live.
 
-## 1. Install (pick one)
+## 1. Install
 
-| Method | Command | Best for |
+**Prerequisites:** Python 3.11+ (except Docker). On **Windows**, install Python from
+[python.org](https://www.python.org/downloads/) with *"Add python.exe to PATH"*
+checked (gives you the `py` launcher).
+
+**Universal (Windows / macOS / Linux):**
+
+```bash
+pip install git+https://github.com/dinhhung893/hyperagent-openai-gateway
+# Windows PowerShell, if pip isn't on PATH:
+py -m pip install git+https://github.com/dinhhung893/hyperagent-openai-gateway
+```
+
+You get the `hyperagent-gateway` command (alias `hga`). If the shell can't find it,
+`python -m gateway.cli …` (Windows: `py -m gateway.cli …`) is the exact equivalent.
+
+**Other methods**
+
+| Method | macOS / Linux | Windows (PowerShell) |
 | --- | --- | --- |
-| **pipx** ⭐ | `pipx install git+https://github.com/dinhhung893/hyperagent-openai-gateway` | a clean global CLI |
-| **uv** (zero-install) | `uvx --from git+https://github.com/dinhhung893/hyperagent-openai-gateway hyperagent-gateway serve` | just trying it |
-| **Docker** | `docker compose up -d --build` | servers |
-| **pip / source** | `git clone … && cd … && pip install -e .` | development |
-| **one-liner** | `curl -fsSL https://raw.githubusercontent.com/dinhhung893/hyperagent-openai-gateway/main/install.sh \| bash` | guided setup |
+| pipx | `pipx install git+…` | `py -m pip install --user pipx; py -m pipx ensurepath` → reopen → `pipx install git+…` |
+| uv | `uvx --from git+… hyperagent-gateway serve` | `irm https://astral.sh/uv/install.ps1 \| iex` → `uvx …` |
+| Docker | `docker compose up -d --build` | `docker compose up -d --build` |
+| one-liner | `curl -fsSL …/install.sh \| bash` | `irm …/install.ps1 \| iex` |
 
-Requires Python 3.11+ (except the Docker path).
+> **Windows/PowerShell:** `curl` is an alias for `Invoke-WebRequest` and there is no
+> `bash`; the `curl … | bash` line is macOS/Linux/WSL only — use `install.ps1`.
+
+> Below, if `hga` isn't found on Windows, replace `hga` with `py -m gateway.cli`.
 
 ## 2. Try it offline (no account)
 

@@ -97,15 +97,33 @@ Những ý chính:
 
 ## Bắt đầu nhanh
 
-**1. Cài đặt** — chọn một cách (tất cả đều cho lệnh `hyperagent-gateway`, bí danh **`hga`**):
+**Điều kiện tiên quyết:** Python 3.11+ (trừ cách Docker). Trên **Windows**, cài
+Python từ [python.org](https://www.python.org/downloads/) và tick *"Add python.exe
+to PATH"* — sẽ có sẵn lệnh `py`.
 
-| Cách | Lệnh | Hợp với |
+**1. Cài đặt — cách phổ quát** (chạy trên Windows, macOS, Linux):
+
+```bash
+pip install git+https://github.com/dinhhung893/hyperagent-openai-gateway
+```
+> Windows PowerShell: nếu không thấy `pip`, dùng `py -m pip install git+…`.
+
+Sẽ có lệnh `hyperagent-gateway` (bí danh `hga`). Nếu shell không tìm thấy lệnh, cách
+tương đương luôn chạy được: `python -m gateway.cli …` (Windows: `py -m gateway.cli …`).
+
+<details><summary><b>Các cách cài khác</b> — pipx · uv · Docker · 1 dòng</summary>
+
+| Cách | macOS / Linux | Windows (PowerShell) |
 | --- | --- | --- |
-| **pipx** ⭐ | `pipx install git+https://github.com/dinhhung893/hyperagent-openai-gateway` | CLI toàn cục gọn |
-| **uv** (không cài) | `uvx --from git+https://github.com/dinhhung893/hyperagent-openai-gateway hyperagent-gateway serve` | thử nhanh |
-| **Docker** ⭐ | `docker compose up -d --build` | máy chủ |
-| **pip** (từ bản clone) | `pip install -e .` | lập trình |
-| **1 dòng** | `curl -fsSL https://raw.githubusercontent.com/dinhhung893/hyperagent-openai-gateway/main/install.sh \| bash` | cài có hướng dẫn |
+| **pipx** | `pipx install git+…` | `py -m pip install --user pipx; py -m pipx ensurepath` → mở lại shell → `pipx install git+…` |
+| **uv** | `uvx --from git+… hyperagent-gateway serve` | `irm https://astral.sh/uv/install.ps1 \| iex` → `uvx --from git+… hyperagent-gateway serve` |
+| **Docker** | `docker compose up -d --build` | `docker compose up -d --build` |
+| **1 dòng** | `curl -fsSL https://raw.githubusercontent.com/dinhhung893/hyperagent-openai-gateway/main/install.sh \| bash` | `irm https://raw.githubusercontent.com/dinhhung893/hyperagent-openai-gateway/main/install.ps1 \| iex` |
+
+> **Lưu ý Windows:** trong PowerShell, `curl` là bí danh của `Invoke-WebRequest` và
+> KHÔNG có `bash`, nên dòng `curl … \| bash` chỉ dành cho macOS/Linux/WSL. Hãy dùng
+> `install.ps1` (qua `irm … \| iex`).
+</details>
 
 **2. Chạy — hai lệnh:**
 
@@ -113,11 +131,12 @@ Những ý chính:
 hga login      # đăng nhập Hyperagent một lần (mở trình duyệt)
 hga serve      # phục vụ tại http://localhost:8000/v1
 ```
+> Windows nếu lệnh chưa có trên PATH: `py -m gateway.cli login` rồi `py -m gateway.cli serve`.
 
 **Chỉ muốn thử?** Không cần tài khoản — chạy với mock:
 
 ```bash
-hga serve --upstream mock
+hga serve --upstream mock          # hoặc:  py -m gateway.cli serve --upstream mock
 ```
 
 > Tài khoản Hyperagent cần ít nhất một **named agent** (máy chủ MCP chỉ mở thread
