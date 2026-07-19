@@ -2,92 +2,60 @@
 
 # Quick start
 
-Two ways to run: **offline (mock)** to see it work in 30 seconds, then **real**
-against Hyperagent.
+The tool is one command — `hyperagent-gateway` (alias **`hga`**). Install it, then
+two commands take you live.
 
-## 0. Requirements
+## 1. Install (pick one)
 
-- Python **3.11+** (`python3.11 --version`)
-- A terminal. No database or cloud account needed for the mock mode.
+| Method | Command | Best for |
+| --- | --- | --- |
+| **pipx** ⭐ | `pipx install git+https://github.com/dinhhung893/hyperagent-openai-gateway` | a clean global CLI |
+| **uv** (zero-install) | `uvx --from git+https://github.com/dinhhung893/hyperagent-openai-gateway hyperagent-gateway serve` | just trying it |
+| **Docker** | `docker compose up -d --build` | servers |
+| **pip / source** | `git clone … && cd … && pip install -e .` | development |
+| **one-liner** | `curl -fsSL https://raw.githubusercontent.com/dinhhung893/hyperagent-openai-gateway/main/install.sh \| bash` | guided setup |
 
-## 1. Install
+Requires Python 3.11+ (except the Docker path).
 
-```bash
-git clone https://github.com/dinhhung893/hyperagent-openai-gateway.git
-cd hyperagent-openai-gateway
-python3.11 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-## 2. Run offline (mock upstream)
-
-The **mock** upstream fakes Hyperagent so you can test the OpenAI surface with no
-account:
+## 2. Try it offline (no account)
 
 ```bash
-GATEWAY_UPSTREAM=mock uvicorn gateway.app:app --port 8000
-```
-
-In another terminal:
-
-```bash
-curl http://localhost:8000/v1/models
-# → {"object":"list","data":[{"id":"agent_default",...},{"id":"agent_research",...}]}
-
+hga serve --upstream mock
+# in another terminal:
 curl http://localhost:8000/v1/chat/completions -H "content-type: application/json" \
   -d '{"model":"agent_default","messages":[{"role":"user","content":"Hello"}]}'
-# → a chat.completion echoing your message
 ```
 
-That confirms the gateway works. Now let's connect the real thing.
-
-## 3. Authorize Hyperagent (one time)
-
-Hyperagent has **no API keys** — you log in through a browser once, and the
-gateway stores a refreshable token.
+## 3. Connect the real Hyperagent
 
 ```bash
-python tools/oauth_login.py --out ~/.hyperagent-gateway/tokens.json
+hga login                 # one-time browser sign-in; stores a refreshable token
+hga agents                # confirm your agents appear
+hga serve                 # start on http://localhost:8000/v1
 ```
 
-This opens your browser, you sign in (Google/Apple/Microsoft) and approve. A
-token bundle is written to `~/.hyperagent-gateway/tokens.json` (keep it secret).
+`hga login` opens your browser (Google/Apple/Microsoft) and writes the token to
+`~/.hyperagent-gateway/tokens.json`. On a headless server, use the two-step remote
+flow — see [Deployment](06-deployment.md#one-time-oauth-on-a-server).
 
-> On a headless server (no browser), use `tools/oauth_remote.py` — see
-> [Deployment](06-deployment.md#one-time-oauth-on-a-server).
+> You need at least one **named agent** in Hyperagent (the MCP server only starts
+> threads on named agents). If `hga agents` is empty, create one in the Hyperagent
+> app.
 
-**You also need at least one named agent** in your Hyperagent account (the MCP
-server only starts threads on named agents). Create one in the Hyperagent app; a
-good choice is an agent tuned to answer API requests (this repo used one named
-**API Bridge**).
+## 4. Configure with a `.env` (optional, recommended)
 
-## 4. Run against real Hyperagent
+Instead of long inline env vars, run `hga init` (interactive) or drop a `.env`:
 
 ```bash
-GATEWAY_UPSTREAM=mcp \
-SHIM_API_KEYS=sk-mylocalkey \
-HYPERAGENT_TOKEN_FILE=~/.hyperagent-gateway/tokens.json \
-uvicorn gateway.app:app --port 8000
+# ~/.hyperagent-gateway/.env  (or ./.env in your working dir)
+GATEWAY_UPSTREAM=mcp
+SHIM_API_KEYS=sk-mylocalkey
+GATEWAY_PORT=8000
 ```
 
-- `SHIM_API_KEYS` = the key(s) your client must send (like an OpenAI key). Leave
-  empty only for local dev.
+Precedence: CLI flags → environment → `.env` (current dir, then home) → defaults.
 
-Check your real agents appear:
-
-```bash
-curl http://localhost:8000/v1/models -H "authorization: Bearer sk-mylocalkey"
-```
-
-Send a real chat (this runs a full agent — it can take tens of seconds):
-
-```bash
-curl http://localhost:8000/v1/chat/completions \
-  -H "authorization: Bearer sk-mylocalkey" -H "content-type: application/json" \
-  -d '{"model":"hyperagent-default","messages":[{"role":"user","content":"What is the capital of Vietnam? One word."}]}'
-```
-
-## 5. Point your favorite client at it
+## 5. Point your client at it
 
 **OpenAI Python SDK**
 ```python
@@ -98,19 +66,17 @@ print(client.chat.completions.create(
     messages=[{"role":"user","content":"Summarize today's AI news"}]).choices[0].message.content)
 ```
 
-**Cursor / Continue / LibreChat / OpenWebUI**
-- OpenAI Base URL: `http://localhost:8000/v1`
-- API key: `sk-mylocalkey`
-- Model: an agent id from `/v1/models` (or `hyperagent-default`)
+**Cursor / Continue / LibreChat / OpenWebUI:** Base URL `http://localhost:8000/v1`,
+API key = one of your `SHIM_API_KEYS`, model = an agent id from `hga agents`.
 
 ## Troubleshooting
 
-| Symptom | Cause & fix |
+| Symptom | Fix |
 | --- | --- |
-| `/v1/models` returns empty list | No **named agent** in your account. Create one in Hyperagent. |
-| `401 Invalid API key` | Your client's key isn't in `SHIM_API_KEYS`. |
-| `No Hyperagent OAuth token` | Run `tools/oauth_login.py` and set `HYPERAGENT_TOKEN_FILE`. |
-| First real call is slow | Normal — the agent runs a full pipeline. Increase `GATEWAY_RUN_TIMEOUT` if needed. |
-| `504 upstream_timeout` | The run took longer than `GATEWAY_RUN_TIMEOUT` (default 600s). Raise it. |
+| `hga agents` empty | Create a **named agent** in Hyperagent. |
+| `401 Invalid API key` | Client key isn't in `SHIM_API_KEYS`. |
+| "No Hyperagent OAuth token" | Run `hga login` (or set `HYPERAGENT_TOKEN_FILE`). |
+| First real call is slow | Normal — a full agent runs. Raise `GATEWAY_RUN_TIMEOUT` if needed. |
+| Not sure what's wrong | Run `hga doctor`. |
 
-Next: [Architecture](03-architecture.md) or [API reference](04-api-reference.md).
+Next: [Architecture](03-architecture.md) · [API reference](04-api-reference.md).

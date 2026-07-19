@@ -2,92 +2,60 @@
 
 # Bắt đầu nhanh
 
-Có hai cách chạy: **ngoại tuyến (mock)** để thấy nó hoạt động trong 30 giây, rồi
-**chạy thật** với Hyperagent.
+Công cụ gói gọn trong một lệnh — `hyperagent-gateway` (bí danh **`hga`**). Cài xong,
+chỉ hai lệnh là chạy.
 
-## 0. Yêu cầu
+## 1. Cài đặt (chọn một)
 
-- Python **3.11+** (`python3.11 --version`)
-- Một cửa sổ dòng lệnh. Chế độ mock không cần database hay tài khoản.
+| Cách | Lệnh | Hợp với |
+| --- | --- | --- |
+| **pipx** ⭐ | `pipx install git+https://github.com/dinhhung893/hyperagent-openai-gateway` | CLI toàn cục gọn |
+| **uv** (không cài) | `uvx --from git+https://github.com/dinhhung893/hyperagent-openai-gateway hyperagent-gateway serve` | thử nhanh |
+| **Docker** | `docker compose up -d --build` | máy chủ |
+| **pip / nguồn** | `git clone … && cd … && pip install -e .` | lập trình |
+| **1 dòng** | `curl -fsSL https://raw.githubusercontent.com/dinhhung893/hyperagent-openai-gateway/main/install.sh \| bash` | cài có hướng dẫn |
 
-## 1. Cài đặt
+Cần Python 3.11+ (trừ cách Docker).
 
-```bash
-git clone https://github.com/dinhhung893/hyperagent-openai-gateway.git
-cd hyperagent-openai-gateway
-python3.11 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-## 2. Chạy ngoại tuyến (thượng nguồn mock)
-
-Thượng nguồn **mock** giả lập Hyperagent để bạn thử bề mặt OpenAI mà không cần
-tài khoản:
+## 2. Thử ngoại tuyến (không cần tài khoản)
 
 ```bash
-GATEWAY_UPSTREAM=mock uvicorn gateway.app:app --port 8000
-```
-
-Ở cửa sổ khác:
-
-```bash
-curl http://localhost:8000/v1/models
-# → {"object":"list","data":[{"id":"agent_default",...},{"id":"agent_research",...}]}
-
+hga serve --upstream mock
+# ở cửa sổ khác:
 curl http://localhost:8000/v1/chat/completions -H "content-type: application/json" \
   -d '{"model":"agent_default","messages":[{"role":"user","content":"Xin chào"}]}'
-# → một chat.completion lặp lại tin nhắn của bạn
 ```
 
-Vậy là cổng chạy được. Giờ kết nối bản thật.
-
-## 3. Cấp quyền Hyperagent (một lần)
-
-Hyperagent **không có API key** — bạn đăng nhập qua trình duyệt một lần, cổng sẽ
-lưu token có thể tự gia hạn.
+## 3. Kết nối Hyperagent thật
 
 ```bash
-python tools/oauth_login.py --out ~/.hyperagent-gateway/tokens.json
+hga login                 # đăng nhập trình duyệt một lần; lưu token tự gia hạn
+hga agents                # xác nhận agent hiện ra
+hga serve                 # chạy tại http://localhost:8000/v1
 ```
 
-Lệnh này mở trình duyệt, bạn đăng nhập (Google/Apple/Microsoft) và bấm chấp thuận.
-Gói token được ghi vào `~/.hyperagent-gateway/tokens.json` (giữ bí mật).
+`hga login` mở trình duyệt (Google/Apple/Microsoft) và ghi token vào
+`~/.hyperagent-gateway/tokens.json`. Trên máy chủ không có trình duyệt, dùng luồng
+hai bước — xem [Triển khai](06-deployment.md#oauth-mot-lan-tren-may-chu).
 
-> Trên máy chủ không có trình duyệt, dùng `tools/oauth_remote.py` — xem
-> [Triển khai](06-deployment.md#oauth-mot-lan-tren-may-chu).
+> Cần ít nhất một **named agent** trong Hyperagent (máy chủ MCP chỉ mở thread trên
+> named agent). Nếu `hga agents` rỗng, hãy tạo một cái trong ứng dụng Hyperagent.
 
-**Bạn cũng cần ít nhất một named agent** trong tài khoản Hyperagent (máy chủ MCP
-chỉ mở thread trên named agent). Hãy tạo một cái trong ứng dụng Hyperagent; nên
-chọn agent được tinh chỉnh để trả lời yêu cầu API (repo này dùng agent tên
-**API Bridge**).
+## 4. Cấu hình bằng `.env` (tùy chọn, khuyến nghị)
 
-## 4. Chạy với Hyperagent thật
+Thay vì gõ dòng env dài, chạy `hga init` (hỏi-đáp) hoặc thả một file `.env`:
 
 ```bash
-GATEWAY_UPSTREAM=mcp \
-SHIM_API_KEYS=sk-khoacuatoi \
-HYPERAGENT_TOKEN_FILE=~/.hyperagent-gateway/tokens.json \
-uvicorn gateway.app:app --port 8000
+# ~/.hyperagent-gateway/.env  (hoặc ./.env ở thư mục làm việc)
+GATEWAY_UPSTREAM=mcp
+SHIM_API_KEYS=sk-khoacuatoi
+GATEWAY_PORT=8000
 ```
 
-- `SHIM_API_KEYS` = khóa mà client phải gửi (giống khóa OpenAI). Chỉ để trống khi
-  dev cục bộ.
+Thứ tự ưu tiên: cờ CLI → biến môi trường → `.env` (thư mục hiện tại, rồi thư mục
+home) → mặc định.
 
-Kiểm tra agent thật xuất hiện:
-
-```bash
-curl http://localhost:8000/v1/models -H "authorization: Bearer sk-khoacuatoi"
-```
-
-Gửi một câu chat thật (chạy cả một agent — có thể mất vài chục giây):
-
-```bash
-curl http://localhost:8000/v1/chat/completions \
-  -H "authorization: Bearer sk-khoacuatoi" -H "content-type: application/json" \
-  -d '{"model":"hyperagent-default","messages":[{"role":"user","content":"Thủ đô Việt Nam là gì? Một từ."}]}'
-```
-
-## 5. Trỏ phần mềm yêu thích vào cổng
+## 5. Trỏ phần mềm vào cổng
 
 **Thư viện OpenAI (Python)**
 ```python
@@ -98,19 +66,17 @@ print(client.chat.completions.create(
     messages=[{"role":"user","content":"Tóm tắt tin AI hôm nay"}]).choices[0].message.content)
 ```
 
-**Cursor / Continue / LibreChat / OpenWebUI**
-- Base URL OpenAI: `http://localhost:8000/v1`
-- API key: `sk-khoacuatoi`
-- Model: một agent id từ `/v1/models` (hoặc `hyperagent-default`)
+**Cursor / Continue / LibreChat / OpenWebUI:** Base URL `http://localhost:8000/v1`,
+API key = một trong các `SHIM_API_KEYS`, model = một agent id từ `hga agents`.
 
 ## Xử lý sự cố
 
-| Hiện tượng | Nguyên nhân & cách sửa |
+| Hiện tượng | Cách sửa |
 | --- | --- |
-| `/v1/models` trả danh sách rỗng | Tài khoản chưa có **named agent**. Tạo một cái trong Hyperagent. |
-| `401 Invalid API key` | Khóa của client không nằm trong `SHIM_API_KEYS`. |
-| `No Hyperagent OAuth token` | Chạy `tools/oauth_login.py` và đặt `HYPERAGENT_TOKEN_FILE`. |
-| Lần gọi thật đầu tiên chậm | Bình thường — agent chạy cả pipeline. Tăng `GATEWAY_RUN_TIMEOUT` nếu cần. |
-| `504 upstream_timeout` | Lượt chạy lâu hơn `GATEWAY_RUN_TIMEOUT` (mặc định 600s). Hãy tăng lên. |
+| `hga agents` rỗng | Tạo một **named agent** trong Hyperagent. |
+| `401 Invalid API key` | Khóa client không có trong `SHIM_API_KEYS`. |
+| "No Hyperagent OAuth token" | Chạy `hga login` (hoặc đặt `HYPERAGENT_TOKEN_FILE`). |
+| Lần gọi thật đầu tiên chậm | Bình thường — chạy cả agent. Tăng `GATEWAY_RUN_TIMEOUT` nếu cần. |
+| Không rõ lỗi gì | Chạy `hga doctor`. |
 
-Tiếp theo: [Kiến trúc](03-architecture.md) hoặc [Tham chiếu API](04-api-reference.md).
+Tiếp theo: [Kiến trúc](03-architecture.md) · [Tham chiếu API](04-api-reference.md).

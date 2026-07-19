@@ -1,0 +1,20 @@
+# Run the gateway on a server with one command:  docker compose up -d
+# Put your settings in a local .env (see .env.example) and your OAuth token
+# bundle in ./secrets/tokens.json (create it with `hga login` elsewhere, or mount
+# your ~/.hyperagent-gateway directory).
+services:
+  gateway:
+    build: .
+    # image: ghcr.io/dinhhung893/hyperagent-openai-gateway:latest  # when published
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      GATEWAY_UPSTREAM: ${GATEWAY_UPSTREAM:-mcp}
+      HYPERAGENT_TOKEN_FILE: /data/tokens.json
+      GATEWAY_STATE_PATH: /data/state.db
+    volumes:
+      # Persist the OAuth token bundle + local state across restarts.
+      - ./secrets:/data
+    restart: unless-stopped

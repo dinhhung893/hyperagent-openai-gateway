@@ -97,34 +97,50 @@ Những ý chính:
 
 ## Bắt đầu nhanh
 
-Cần Python 3.11 trở lên.
+**1. Cài đặt** — chọn một cách (tất cả đều cho lệnh `hyperagent-gateway`, bí danh **`hga`**):
+
+| Cách | Lệnh | Hợp với |
+| --- | --- | --- |
+| **pipx** ⭐ | `pipx install git+https://github.com/dinhhung893/hyperagent-openai-gateway` | CLI toàn cục gọn |
+| **uv** (không cài) | `uvx --from git+https://github.com/dinhhung893/hyperagent-openai-gateway hyperagent-gateway serve` | thử nhanh |
+| **Docker** ⭐ | `docker compose up -d --build` | máy chủ |
+| **pip** (từ bản clone) | `pip install -e .` | lập trình |
+| **1 dòng** | `curl -fsSL https://raw.githubusercontent.com/dinhhung893/hyperagent-openai-gateway/main/install.sh \| bash` | cài có hướng dẫn |
+
+**2. Chạy — hai lệnh:**
 
 ```bash
-python3.11 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+hga login      # đăng nhập Hyperagent một lần (mở trình duyệt)
+hga serve      # phục vụ tại http://localhost:8000/v1
 ```
 
-**Thử ngay khi chưa có tài khoản** — dùng thượng nguồn *mock* có sẵn:
+**Chỉ muốn thử?** Không cần tài khoản — chạy với mock:
 
 ```bash
-GATEWAY_UPSTREAM=mock uvicorn gateway.app:app --port 8000
-curl http://localhost:8000/v1/chat/completions -H "content-type: application/json" \
-  -d '{"model":"agent_default","messages":[{"role":"user","content":"Xin chào"}]}'
+hga serve --upstream mock
 ```
 
-**Dùng Hyperagent thật** — cần đăng nhập OAuth một lần:
+> Tài khoản Hyperagent cần ít nhất một **named agent** (máy chủ MCP chỉ mở thread
+> trên named agent). Kiểm tra bằng `hga agents`.
 
-```bash
-python tools/oauth_login.py --out ~/.hyperagent-gateway/tokens.json   # một lần, qua trình duyệt
-GATEWAY_UPSTREAM=mcp SHIM_API_KEYS=sk-khoacuatoi \
-  uvicorn gateway.app:app --port 8000
-```
+Hướng dẫn đầy đủ: [Bắt đầu nhanh](docs/vi/02-quickstart.md).
 
-Hướng dẫn từng bước (kèm kết quả từng lệnh): [Bắt đầu nhanh](docs/vi/02-quickstart.md).
+## Giao diện dòng lệnh (CLI)
 
-> **Lưu ý:** tài khoản Hyperagent của bạn cần có ít nhất một **named agent** (máy
-> chủ MCP chỉ mở thread trên named agent). Repo này được dựng với agent tên là
-> **API Bridge**.
+`hyperagent-gateway` (bí danh `hga`):
+
+| Lệnh | Chức năng |
+| --- | --- |
+| `hga init` | Ghi `~/.hyperagent-gateway/.env` (hỏi-đáp; `--yes` để lấy mặc định) |
+| `hga login` | OAuth một lần (`--remote-start` / `--remote-finish` cho máy chủ không trình duyệt) |
+| `hga serve` | Chạy gateway (`--port`, `--upstream mcp\|mock`, `--reload`, …) |
+| `hga agents` | Liệt kê agent Hyperagent |
+| `hga doctor` | Kiểm tra cấu hình + kết nối upstream |
+| `hga quickstart` | `login` (nếu cần) rồi `serve` |
+
+**Cấu hình tự nạp** theo thứ tự ưu tiên: cờ CLI → biến môi trường → `.env` (thư mục
+hiện tại, rồi `~/.hyperagent-gateway/.env`) → mặc định. Nên chỉ cần một file `.env`,
+khỏi gõ dòng env dài. (`uvicorn gateway.app:app` vẫn dùng được cho người thạo.)
 
 ## Kết nối phần mềm của bạn
 
@@ -215,13 +231,14 @@ Mỗi người đăng nhập một lần bằng `tools/oauth_login.py`. Xem
 
 ## Triển khai
 
+Docker Compose (khuyến nghị cho máy chủ) — đặt cấu hình trong `.env` và gói token ở
+`./secrets/tokens.json`:
+
 ```bash
-docker build -t hyperagent-openai-gateway .
-docker run -p 8000:8000 -e GATEWAY_UPSTREAM=mcp \
-  -v ~/.hyperagent-gateway:/root/.hyperagent-gateway hyperagent-openai-gateway
+docker compose up -d --build
 ```
 
-Hướng dẫn đầy đủ (VPS, reverse proxy, HTTPS, quản lý bí mật):
+Hướng dẫn đầy đủ (VPS, reverse proxy, HTTPS, đa người dùng, OAuth headless):
 [Triển khai](docs/vi/06-deployment.md).
 
 ## Kiểm thử

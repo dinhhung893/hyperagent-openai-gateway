@@ -96,34 +96,50 @@ Key ideas:
 
 ## Quick start
 
-Requires Python 3.11+.
+**1. Install** — pick one (all give you the `hyperagent-gateway` command, alias **`hga`**):
+
+| Method | Command | Best for |
+| --- | --- | --- |
+| **pipx** ⭐ | `pipx install git+https://github.com/dinhhung893/hyperagent-openai-gateway` | a clean global CLI |
+| **uv** (zero-install) | `uvx --from git+https://github.com/dinhhung893/hyperagent-openai-gateway hyperagent-gateway serve` | just trying it |
+| **Docker** ⭐ | `docker compose up -d --build` | servers |
+| **pip** (from a clone) | `pip install -e .` | development |
+| **one-liner** | `curl -fsSL https://raw.githubusercontent.com/dinhhung893/hyperagent-openai-gateway/main/install.sh \| bash` | guided setup |
+
+**2. Go live — two commands:**
 
 ```bash
-python3.11 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+hga login      # one-time Hyperagent sign-in (opens a browser)
+hga serve      # serves http://localhost:8000/v1
 ```
 
-**Try it offline (no account needed)** — the built-in *mock* upstream:
+**Just trying it?** No account needed — run against the built-in mock:
 
 ```bash
-GATEWAY_UPSTREAM=mock uvicorn gateway.app:app --port 8000
-curl http://localhost:8000/v1/chat/completions -H "content-type: application/json" \
-  -d '{"model":"agent_default","messages":[{"role":"user","content":"Hello"}]}'
+hga serve --upstream mock
 ```
 
-**Use the real Hyperagent upstream** — needs a one-time OAuth login:
+> Your Hyperagent account needs at least one **named agent** (the MCP server only
+> starts threads on named agents). Check with `hga agents`.
 
-```bash
-python tools/oauth_login.py --out ~/.hyperagent-gateway/tokens.json   # once, in a browser
-GATEWAY_UPSTREAM=mcp SHIM_API_KEYS=sk-mylocalkey \
-  uvicorn gateway.app:app --port 8000
-```
+Full walkthrough: [Quick start](docs/en/02-quickstart.md).
 
-Step-by-step (with the output of every command): [Quick start](docs/en/02-quickstart.md).
+## Command-line interface
 
-> **Note:** your Hyperagent account must have at least one **named agent** (the
-> MCP server only starts threads on named agents). This repo was built with an
-> agent named **API Bridge**.
+`hyperagent-gateway` (alias `hga`):
+
+| Command | What it does |
+| --- | --- |
+| `hga init` | Write `~/.hyperagent-gateway/.env` (interactive; `--yes` for defaults) |
+| `hga login` | One-time OAuth (`--remote-start` / `--remote-finish` for headless servers) |
+| `hga serve` | Run the gateway (`--port`, `--upstream mcp\|mock`, `--reload`, …) |
+| `hga agents` | List your Hyperagent agents |
+| `hga doctor` | Check config + upstream reachability |
+| `hga quickstart` | `login` (if needed) then `serve` |
+
+**Config is auto-loaded** with precedence: CLI flags → environment → `.env` (current
+dir, then `~/.hyperagent-gateway/.env`) → defaults. So you can drop a `.env` and
+skip long inline env vars. (`uvicorn gateway.app:app` still works for power users.)
 
 ## Connect your client
 
@@ -213,13 +229,15 @@ Each user authorizes once with `tools/oauth_login.py`. See
 
 ## Deployment
 
+Docker Compose (recommended for servers) — put settings in `.env` and your token
+bundle in `./secrets/tokens.json`:
+
 ```bash
-docker build -t hyperagent-openai-gateway .
-docker run -p 8000:8000 -e GATEWAY_UPSTREAM=mcp \
-  -v ~/.hyperagent-gateway:/root/.hyperagent-gateway hyperagent-openai-gateway
+docker compose up -d --build
 ```
 
-Full guide (VPS, reverse proxy, HTTPS, secrets): [Deployment](docs/en/06-deployment.md).
+Full guide (VPS, reverse proxy, HTTPS, multi-tenant, headless OAuth):
+[Deployment](docs/en/06-deployment.md).
 
 ## Testing
 

@@ -5,6 +5,25 @@ import os
 from dataclasses import dataclass, field
 
 
+def load_env_files() -> None:
+    """Autoload .env so users don't pass long inline env vars.
+
+    Precedence (highest first): real process env > ./.env > ~/.hyperagent-gateway/.env
+    > built-in defaults. Real env always wins (override=False). Safe no-op if
+    python-dotenv isn't installed.
+    """
+    try:
+        from dotenv import load_dotenv
+    except Exception:
+        return
+    home_env = os.path.expanduser("~/.hyperagent-gateway/.env")
+    load_dotenv(os.path.join(os.getcwd(), ".env"), override=False)  # CWD wins among files
+    load_dotenv(home_env, override=False)
+
+
+load_env_files()
+
+
 def _env_bool(name: str, default: bool = False) -> bool:
     v = os.environ.get(name)
     if v is None:

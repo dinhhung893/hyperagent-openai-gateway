@@ -4,17 +4,24 @@
 
 ## Docker
 
+**Compose (khuyến nghị).** Đặt cấu hình trong `.env` và gói token ở
+`./secrets/tokens.json`, rồi:
+
+```bash
+docker compose up -d --build
+```
+
+**Docker thường:**
+
 ```bash
 docker build -t hyperagent-openai-gateway .
-docker run -d --name gateway -p 8000:8000 \
-  -e GATEWAY_UPSTREAM=mcp \
-  -e SHIM_API_KEYS=sk-prod-key \
+docker run -d --name gateway -p 8000:8000 --env-file .env \
   -v ~/.hyperagent-gateway:/root/.hyperagent-gateway \
   hyperagent-openai-gateway
 ```
 
 Gắn một volume để gói token OAuth và trạng thái cục bộ còn lại sau khi khởi động
-lại.
+lại. Entrypoint của image chính là CLI (`hyperagent-gateway serve`).
 
 ## Sau reverse proxy (HTTPS)
 
@@ -32,13 +39,13 @@ streaming SSE chảy qua được.
 <a id="oauth-mot-lan-tren-may-chu"></a>
 ## OAuth một lần trên máy chủ
 
-Nếu máy chủ không có trình duyệt, dùng trợ giúp hai bước:
+Nếu máy chủ không có trình duyệt, dùng luồng hai bước:
 
 ```bash
-# Trên máy chủ: đăng ký + lấy URL cấp quyền
-python tools/oauth_remote.py start --redirect https://CALLBACK_CUA_BAN/cb
-# Mở URL in ra bằng BẤT KỲ trình duyệt nào, chấp thuận, chép ?code=… từ URL chuyển hướng
-python tools/oauth_remote.py finish --callback-url "https://CALLBACK_CUA_BAN/cb?code=...&state=..."
+# Trên máy chủ: đăng ký + in URL cấp quyền
+hga login --remote-start --redirect https://CALLBACK_CUA_BAN/cb
+# Mở URL in ra bằng BẤT KỲ trình duyệt nào, chấp thuận, chép ?code=… (và &state=…)
+hga login --remote-finish --code <CODE> --state <STATE>
 ```
 Lệnh này ghi `~/.hyperagent-gateway/tokens.json` kèm refresh token; sau đó cổng tự
 xoay vòng token.

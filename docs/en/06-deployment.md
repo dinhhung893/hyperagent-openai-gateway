@@ -4,16 +4,24 @@
 
 ## Docker
 
+**Compose (recommended).** Put settings in `.env` and your token bundle in
+`./secrets/tokens.json`, then:
+
+```bash
+docker compose up -d --build
+```
+
+**Plain docker:**
+
 ```bash
 docker build -t hyperagent-openai-gateway .
-docker run -d --name gateway -p 8000:8000 \
-  -e GATEWAY_UPSTREAM=mcp \
-  -e SHIM_API_KEYS=sk-prod-key \
+docker run -d --name gateway -p 8000:8000 --env-file .env \
   -v ~/.hyperagent-gateway:/root/.hyperagent-gateway \
   hyperagent-openai-gateway
 ```
 
 Mount a volume so the OAuth token bundle and local state persist across restarts.
+The image's entrypoint is the CLI (`hyperagent-gateway serve`).
 
 ## Behind a reverse proxy (HTTPS)
 
@@ -30,13 +38,13 @@ SSE streaming flows through.
 
 ## One-time OAuth on a server
 
-If the server has no browser, use the two-step remote helper:
+If the server has no browser, use the two-step remote flow:
 
 ```bash
-# On the server: register + get an authorize URL
-python tools/oauth_remote.py start --redirect https://YOUR_CALLBACK/cb
-# Open the printed URL in ANY browser, approve, copy the ?code=… from the redirect
-python tools/oauth_remote.py finish --callback-url "https://YOUR_CALLBACK/cb?code=...&state=..."
+# On the server: register + print an authorize URL
+hga login --remote-start --redirect https://YOUR_CALLBACK/cb
+# Open the printed URL in ANY browser, approve, copy the ?code=… (and &state=…)
+hga login --remote-finish --code <CODE> --state <STATE>
 ```
 This writes `~/.hyperagent-gateway/tokens.json` with a refresh token; the gateway
 auto-rotates it afterwards.
