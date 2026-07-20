@@ -96,6 +96,10 @@ GATEWAY_PORT=8000
 Thứ tự ưu tiên: cờ CLI → biến môi trường → `.env` (thư mục hiện tại, rồi thư mục
 home) → mặc định.
 
+> `SHIM_API_KEYS` là khóa gateway **của chính bạn** — chọn giá trị bất kỳ (hoặc để
+> `hga init` tự sinh). Đó là thứ client gửi làm `api_key`; **không** lấy từ
+> Hyperagent. Bỏ trống để dùng chế độ dev (chấp nhận mọi key).
+
 ## 5. Trỏ phần mềm vào cổng
 
 **Thư viện OpenAI (Python)**

@@ -161,6 +161,27 @@ Hướng dẫn đầy đủ: [Bắt đầu nhanh](docs/vi/02-quickstart.md).
 hiện tại, rồi `~/.hyperagent-gateway/.env`) → mặc định. Nên chỉ cần một file `.env`,
 khỏi gõ dòng env dài. (`uvicorn gateway.app:app` vẫn dùng được cho người thạo.)
 
+## Xác thực (API key)
+
+Có **hai** loại khóa riêng biệt — đừng nhầm:
+
+**1. API key của gateway** (`SHIM_API_KEYS`) — chính là `api_key` mà phần mềm OpenAI
+gửi. **Bạn tự đặt, không lấy từ đâu cả.** `hga init` và các trình cài tự sinh sẵn một cái.
+
+- **Xem:** `cat ~/.hyperagent-gateway/.env` (Windows PowerShell:
+  `Get-Content $env:USERPROFILE\.hyperagent-gateway\.env`) — nhìn dòng `SHIM_API_KEYS=`.
+- **Đặt / tạo:** `hga init` (wizard), hoặc sửa `.env`
+  (`SHIM_API_KEYS=sk-khoacuatoi`; nhiều khóa ngăn bằng dấu phẩy), hoặc truyền
+  `--api-keys` cho `serve`.
+- **Chế độ dev:** nếu không đặt `SHIM_API_KEYS`, gateway chấp nhận *mọi* key.
+
+**2. Quyền truy cập Hyperagent** — Hyperagent **không có API key**. Gateway đăng nhập
+OAuth một lần (`hga login`) và lưu token tự gia hạn; bạn không phải dán key Hyperagent
+ở đâu cả.
+
+Tóm lại: `hga login` lo phần Hyperagent; còn `SHIM_API_KEYS` là chuỗi bí mật *bạn* đặt
+để bảo vệ gateway, và đó là thứ client dùng làm `api_key`.
+
 ## Kết nối phần mềm của bạn
 
 **Thư viện OpenAI (Python)**

@@ -161,6 +161,28 @@ Full walkthrough: [Quick start](docs/en/02-quickstart.md).
 dir, then `~/.hyperagent-gateway/.env`) → defaults. So you can drop a `.env` and
 skip long inline env vars. (`uvicorn gateway.app:app` still works for power users.)
 
+## Authentication (API keys)
+
+There are **two** separate credentials — don't confuse them:
+
+**1. Your gateway API key** (`SHIM_API_KEYS`) — the `api_key` your OpenAI client
+sends. **You choose it yourself; it is not fetched from anywhere.** `hga init` and
+the installers auto-generate one for you.
+
+- **View it:** `cat ~/.hyperagent-gateway/.env` (Windows PowerShell:
+  `Get-Content $env:USERPROFILE\.hyperagent-gateway\.env`) — look for the
+  `SHIM_API_KEYS=` line.
+- **Set / generate it:** `hga init` (wizard), or edit `.env`
+  (`SHIM_API_KEYS=sk-yourkey`; comma-separate several), or pass `--api-keys` to `serve`.
+- **Dev mode:** if `SHIM_API_KEYS` is unset, the gateway accepts *any* key.
+
+**2. Your Hyperagent access** — Hyperagent has **no API key**. The gateway signs in
+once with OAuth (`hga login`) and stores a refreshable token; you never paste a
+Hyperagent key anywhere.
+
+So: `hga login` handles Hyperagent; `SHIM_API_KEYS` is a secret *you* set to protect
+the gateway, and it's what clients use as their `api_key`.
+
 ## Connect your client
 
 **OpenAI Python SDK**

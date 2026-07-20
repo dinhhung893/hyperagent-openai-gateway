@@ -7,6 +7,12 @@
 **Tôi có phải sửa code không?** Không. Đặt `base_url` của client OpenAI trỏ vào
 cổng và `api_key` là một trong các `SHIM_API_KEYS`. Còn lại giữ nguyên.
 
+**Lấy API key ở đâu?** Không phải đi lấy — **bạn tự đặt.** `api_key` mà client gửi
+chính là `SHIM_API_KEYS` của gateway: `hga init` tự sinh sẵn, sửa được trong
+`~/.hyperagent-gateway/.env`, và ở chế độ dev (khi bỏ trống) thì mọi giá trị đều
+chạy. Bản thân Hyperagent **không có** API key — gateway đăng nhập qua `hga login`
+(OAuth). Xem [Bắt đầu nhanh](02-quickstart.md).
+
 **Truyền gì vào `model`?** Một agent id lấy từ `GET /v1/models`, hoặc bí danh
 `hyperagent-default`.
 

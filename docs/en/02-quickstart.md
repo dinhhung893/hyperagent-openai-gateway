@@ -96,6 +96,10 @@ GATEWAY_PORT=8000
 
 Precedence: CLI flags → environment → `.env` (current dir, then home) → defaults.
 
+> `SHIM_API_KEYS` is **your own** gateway key — pick any value (or let `hga init`
+> generate one). It's what clients send as `api_key`; it is **not** obtained from
+> Hyperagent. Leave it unset for dev mode (any key accepted).
+
 ## 5. Point your client at it
 
 **OpenAI Python SDK**
