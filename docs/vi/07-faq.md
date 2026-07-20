@@ -13,6 +13,13 @@ chính là `SHIM_API_KEYS` của gateway: `hga init` tự sinh sẵn, sửa đư
 chạy. Bản thân Hyperagent **không có** API key — gateway đăng nhập qua `hga login`
 (OAuth). Xem [Bắt đầu nhanh](02-quickstart.md).
 
+**Không đặt `SHIM_API_KEYS` thì điền gì vào api_key?** Một chuỗi **khác rỗng** bất
+kỳ — ví dụ `sk-local`. Ở chế độ dev, gateway bỏ qua giá trị này, nhưng client
+OpenAI vẫn bắt `api_key` khác rỗng (một số còn kiểm tra tiền tố `sk-`). Điền vào
+nơi tool yêu cầu, ví dụ `OPENAI_API_KEY=sk-local`, hoặc ô "API key" trong
+Cursor/Continue/LibreChat. ⚠️ Chế độ dev **không** có bảo vệ — hãy đặt
+`SHIM_API_KEYS` thật trước khi mở cổng cho người khác dùng.
+
 **Truyền gì vào `model`?** Một agent id lấy từ `GET /v1/models`, hoặc bí danh
 `hyperagent-default`.
 

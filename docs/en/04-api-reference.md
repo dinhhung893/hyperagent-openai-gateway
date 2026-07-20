@@ -2,7 +2,8 @@
 
 # API reference
 
-Base URL: `http://<host>:8000/v1`. Auth: `Authorization: Bearer <gateway key>`.
+Base URL: `http://<host>:8000/v1`. Auth: `Authorization: Bearer <gateway key>`
+(dev mode with no `SHIM_API_KEYS`: any non-empty value like `sk-local`).
 All responses use OpenAI wire format. Errors use the OpenAI envelope:
 
 ```json

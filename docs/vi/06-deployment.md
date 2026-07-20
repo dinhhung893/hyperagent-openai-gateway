@@ -69,6 +69,9 @@ Tạo một file khóa và trỏ `GATEWAY_KEYS_FILE` vào nó:
 
 - **Không bao giờ commit bí mật.** `tokens.json`, `.env`, và trạng thái cục bộ đều
   bị gitignore; giữ file token ở `chmod 600`.
+- **Chế độ dev = không bảo vệ:** khi bỏ trống `SHIM_API_KEYS`, gateway chấp nhận
+  mọi key (client chỉ cần gửi giá trị khác rỗng như `sk-local`). Chỉ dùng cho
+  localhost — đừng mở cổng ra mạng ở trạng thái này.
 - **Dùng `SHIM_API_KEYS` mạnh** và xoay vòng; coi chúng như khóa OpenAI.
 - **Khóa các công cụ nguy hiểm** cho khóa dùng chung:
   `GATEWAY_DISABLED_TOOLS=shell,write_file`.

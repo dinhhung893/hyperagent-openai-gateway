@@ -173,7 +173,9 @@ gửi. **Bạn tự đặt, không lấy từ đâu cả.** `hga init` và các 
 - **Đặt / tạo:** `hga init` (wizard), hoặc sửa `.env`
   (`SHIM_API_KEYS=sk-khoacuatoi`; nhiều khóa ngăn bằng dấu phẩy), hoặc truyền
   `--api-keys` cho `serve`.
-- **Chế độ dev:** nếu không đặt `SHIM_API_KEYS`, gateway chấp nhận *mọi* key.
+- **Chế độ dev:** nếu không đặt `SHIM_API_KEYS`, gateway chấp nhận *mọi* key —
+  nhưng client vẫn cần giá trị **khác rỗng**, nên cứ điền `sk-local` (đa số tool
+  OpenAI bắt `api_key` khác rỗng, một số cần tiền tố `sk-`).
 
 **2. Quyền truy cập Hyperagent** — Hyperagent **không có API key**. Gateway đăng nhập
 OAuth một lần (`hga login`) và lưu token tự gia hạn; bạn không phải dán key Hyperagent
@@ -272,7 +274,7 @@ Mỗi người đăng nhập một lần bằng `tools/oauth_login.py`. Xem
 | `GATEWAY_UPSTREAM` | `mcp` | `mcp` (thật) hoặc `mock` (ngoại tuyến) |
 | `HYPERAGENT_MCP_URL` | `https://hyperagent.com/api/mcp` | endpoint thượng nguồn |
 | `HYPERAGENT_TOKEN_FILE` | `~/.hyperagent-gateway/tokens.json` | gói token OAuth |
-| `SHIM_API_KEYS` | (rỗng = chế độ dev) | danh sách khóa client, phân tách bằng dấu phẩy |
+| `SHIM_API_KEYS` | (rỗng = dev; client vẫn gửi key khác rỗng bất kỳ, vd `sk-local`) | danh sách khóa client, phân tách bằng dấu phẩy |
 | `GATEWAY_KEYS_FILE` | (không) | bản đồ danh tính đa người dùng (JSON) |
 | `GATEWAY_DEFAULT_AGENT` | (agent đầu tiên) | agent cho `hyperagent-default` |
 | `GATEWAY_EXEC_MODE` | `roundtrip` | chế độ tool-runner: `roundtrip` hoặc `auto` |

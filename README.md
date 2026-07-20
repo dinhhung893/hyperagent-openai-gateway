@@ -174,7 +174,9 @@ the installers auto-generate one for you.
   `SHIM_API_KEYS=` line.
 - **Set / generate it:** `hga init` (wizard), or edit `.env`
   (`SHIM_API_KEYS=sk-yourkey`; comma-separate several), or pass `--api-keys` to `serve`.
-- **Dev mode:** if `SHIM_API_KEYS` is unset, the gateway accepts *any* key.
+- **Dev mode:** if `SHIM_API_KEYS` is unset, the gateway accepts *any* key — but
+  your client still needs a **non-empty** value, so just put `sk-local` (most
+  OpenAI tools require a non-empty `api_key`, and some want the `sk-` prefix).
 
 **2. Your Hyperagent access** — Hyperagent has **no API key**. The gateway signs in
 once with OAuth (`hga login`) and stores a refreshable token; you never paste a
@@ -272,7 +274,7 @@ Each user authorizes once with `tools/oauth_login.py`. See
 | `GATEWAY_UPSTREAM` | `mcp` | `mcp` (real) or `mock` (offline) |
 | `HYPERAGENT_MCP_URL` | `https://hyperagent.com/api/mcp` | upstream endpoint |
 | `HYPERAGENT_TOKEN_FILE` | `~/.hyperagent-gateway/tokens.json` | OAuth token bundle |
-| `SHIM_API_KEYS` | (empty = dev) | comma-separated client keys |
+| `SHIM_API_KEYS` | (empty = dev; clients still send any non-empty key, e.g. `sk-local`) | comma-separated client keys |
 | `GATEWAY_KEYS_FILE` | (none) | multi-tenant identity map (JSON) |
 | `GATEWAY_DEFAULT_AGENT` | (first agent) | agent for `hyperagent-default` |
 | `GATEWAY_EXEC_MODE` | `roundtrip` | tool-runner mode: `roundtrip` or `auto` |

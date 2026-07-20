@@ -98,7 +98,8 @@ Precedence: CLI flags → environment → `.env` (current dir, then home) → de
 
 > `SHIM_API_KEYS` is **your own** gateway key — pick any value (or let `hga init`
 > generate one). It's what clients send as `api_key`; it is **not** obtained from
-> Hyperagent. Leave it unset for dev mode (any key accepted).
+> Hyperagent. Leave it unset for dev mode — then just put any non-empty value like
+> `sk-local` in your client (tools require a non-empty `api_key`).
 
 ## 5. Point your client at it
 

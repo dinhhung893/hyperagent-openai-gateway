@@ -2,7 +2,8 @@
 
 # Tham chiếu API
 
-Base URL: `http://<host>:8000/v1`. Xác thực: `Authorization: Bearer <khóa cổng>`.
+Base URL: `http://<host>:8000/v1`. Xác thực: `Authorization: Bearer <khóa cổng>`
+(chế độ dev không đặt `SHIM_API_KEYS`: mọi giá trị khác rỗng như `sk-local`).
 Mọi kết quả dùng định dạng OpenAI. Lỗi dùng khung OpenAI:
 
 ```json

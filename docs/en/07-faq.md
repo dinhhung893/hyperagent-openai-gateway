@@ -13,6 +13,13 @@ gateway and `api_key` to one of your `SHIM_API_KEYS`. Everything else stays.
 mode (when it's unset). Hyperagent itself has **no** API key — the gateway signs in
 via `hga login` (OAuth). See [Quick start](02-quickstart.md).
 
+**If I don't set `SHIM_API_KEYS`, what do I put as the api_key?** Any **non-empty**
+string — e.g. `sk-local`. In dev mode the gateway ignores the value, but OpenAI
+clients still require a non-empty `api_key` (and some validate the `sk-` prefix).
+Put it wherever the tool expects it, e.g. `OPENAI_API_KEY=sk-local`, or the "API
+key" field in Cursor/Continue/LibreChat. ⚠️ Dev mode has **no** auth — set a real
+`SHIM_API_KEYS` before exposing the gateway to anyone else.
+
 **What do I put as `model`?** A Hyperagent agent id from `GET /v1/models`, or the
 alias `hyperagent-default`.
 

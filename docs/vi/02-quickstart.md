@@ -98,7 +98,8 @@ home) → mặc định.
 
 > `SHIM_API_KEYS` là khóa gateway **của chính bạn** — chọn giá trị bất kỳ (hoặc để
 > `hga init` tự sinh). Đó là thứ client gửi làm `api_key`; **không** lấy từ
-> Hyperagent. Bỏ trống để dùng chế độ dev (chấp nhận mọi key).
+> Hyperagent. Bỏ trống để dùng chế độ dev — khi đó cứ điền giá trị khác rỗng bất kỳ
+> như `sk-local` vào client (tool bắt buộc `api_key` khác rỗng).
 
 ## 5. Trỏ phần mềm vào cổng
 

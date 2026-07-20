@@ -68,6 +68,9 @@ Create a keys file and point `GATEWAY_KEYS_FILE` at it:
 
 - **Never commit secrets.** `tokens.json`, `.env`, and local state are gitignored;
   keep token files `chmod 600`.
+- **Dev mode = no auth:** with `SHIM_API_KEYS` unset, the gateway accepts any key
+  (clients just send a non-empty value like `sk-local`). Fine for localhost only —
+  never expose the gateway publicly in that state.
 - **Use strong `SHIM_API_KEYS`** and rotate them; treat them like OpenAI keys.
 - **Lock down dangerous tools** for shared keys: `GATEWAY_DISABLED_TOOLS=shell,write_file`.
 - **Terminate TLS** at the proxy; don't expose plain HTTP publicly.
