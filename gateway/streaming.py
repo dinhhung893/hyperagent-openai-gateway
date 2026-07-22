@@ -7,12 +7,15 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import time
 import uuid
 from typing import AsyncIterator, Optional
 
 from .toolbridge import tool_events_to_tool_calls
 from .upstream.base import UpstreamAdapter
+
+_log = logging.getLogger("gateway.streaming")
 
 
 def _chunk(cid: str, model: str, created: int, delta: dict,
@@ -39,53 +42,58 @@ async def chat_completion_stream(
     # role delta first (OpenAI convention)
     yield _chunk(cid, model, created, {"role": "assistant", "content": ""})
 
-    if thread_id is None:
-        baseline = 0
-        thread_id = await adapter.create_thread(agent_id, message, file_ids)
-    else:
-        baseline = adapter.assistant_count(await adapter.get_thread(thread_id))
-        await adapter.send_message(thread_id, message, file_ids)
+    try:
+        if thread_id is None:
+            baseline = 0
+            thread_id = await adapter.create_thread(agent_id, message, file_ids)
+        else:
+            baseline = adapter.assistant_count(await adapter.get_thread(thread_id))
+            await adapter.send_message(thread_id, message, file_ids)
 
-    emitted = ""
-    deadline = time.monotonic() + timeout
-    snap = await adapter.get_thread(thread_id)
-    while True:
-        has_new = adapter.assistant_count(snap) > baseline
-        asst = snap.last_assistant if has_new else None
-        if asst and asst.content and asst.content != emitted:
-            new = asst.content[len(emitted):] if asst.content.startswith(emitted) else asst.content
-            emitted = asst.content
-            if new:
-                yield _chunk(cid, model, created, {"content": new})
-        if not snap.running and has_new:
-            break
-        if time.monotonic() > deadline:
-            yield _chunk(cid, model, created, {"content": "\n[stream timed out]"}, finish="length")
-            yield "data: [DONE]\n\n"
-            return
-        await asyncio.sleep(poll_interval)
+        emitted = ""
+        deadline = time.monotonic() + timeout
         snap = await adapter.get_thread(thread_id)
+        while True:
+            has_new = adapter.assistant_count(snap) > baseline
+            asst = snap.last_assistant if has_new else None
+            if asst and asst.content and asst.content != emitted:
+                new = asst.content[len(emitted):] if asst.content.startswith(emitted) else asst.content
+                emitted = asst.content
+                if new:
+                    yield _chunk(cid, model, created, {"content": new})
+            if not snap.running and has_new:
+                break
+            if time.monotonic() > deadline:
+                yield _chunk(cid, model, created, {"content": "\n[stream timed out]"}, finish="length")
+                yield "data: [DONE]\n\n"
+                return
+            await asyncio.sleep(poll_interval)
+            snap = await adapter.get_thread(thread_id)
 
-    # tool_calls (observability) + finish
-    asst = snap.last_assistant
-    tool_calls = tool_events_to_tool_calls(asst.tool_events) if asst else []
-    finish = "tool_calls" if tool_calls else "stop"
-    if tool_calls:
-        yield _chunk(cid, model, created, {"tool_calls": [
-            {"index": i, **tc} for i, tc in enumerate(tool_calls)
-        ]})
-    yield _chunk(cid, model, created, {}, finish=finish)
+        # tool_calls (observability) + finish
+        asst = snap.last_assistant
+        tool_calls = tool_events_to_tool_calls(asst.tool_events) if asst else []
+        finish = "tool_calls" if tool_calls else "stop"
+        if tool_calls:
+            yield _chunk(cid, model, created, {"tool_calls": [
+                {"index": i, **tc} for i, tc in enumerate(tool_calls)
+            ]})
+        yield _chunk(cid, model, created, {}, finish=finish)
 
-    if include_usage:
-        from .translate import estimate_usage
-        usage = estimate_usage(snap)
-        obj = {
-            "id": cid, "object": "chat.completion.chunk", "created": created,
-            "model": model, "choices": [], "usage": usage,
-        }
-        yield f"data: {json.dumps(obj)}\n\n"
+        if include_usage:
+            from .translate import estimate_usage
+            usage = estimate_usage(snap)
+            obj = {
+                "id": cid, "object": "chat.completion.chunk", "created": created,
+                "model": model, "choices": [], "usage": usage,
+            }
+            yield f"data: {json.dumps(obj)}\n\n"
 
-    yield "data: [DONE]\n\n"
+        yield "data: [DONE]\n\n"
+    except Exception as e:  # noqa: BLE001 - log + always close the SSE stream
+        _log.exception("chat_completion_stream failed: %r", e)
+        yield _chunk(cid, model, created, {}, finish="stop")
+        yield "data: [DONE]\n\n"
 
 
 def _sse(event: str, data: dict) -> str:

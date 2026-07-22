@@ -80,7 +80,13 @@ class _EncodingFixMiddleware:
             if not sent:
                 sent = True
                 return {"type": "http.request", "body": fixed, "more_body": False}
-            return {"type": "http.disconnect"}
+            # Body already delivered; delegate to the real receiver so disconnect
+            # detection waits for an actual connection event. Returning
+            # {"type": "http.disconnect"} unconditionally here makes Starlette's
+            # listen_for_disconnect (ASGI spec_version < 2.4, which uvicorn's h11
+            # protocol reports as "2.3") cancel every streaming response the
+            # instant it starts - see chat_completion_stream / responses_stream.
+            return await receive()
 
         return await self.app(scope, receive_fixed, send)
 
